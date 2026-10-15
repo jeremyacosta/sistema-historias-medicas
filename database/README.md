@@ -1,0 +1,2 @@
+-- Scripts SQL de creación de tablas (DDL) y datos semilla (DML)
+-- Diseñado a partir de los 6 formatos oficiales del Hospital Periférico de Petare
