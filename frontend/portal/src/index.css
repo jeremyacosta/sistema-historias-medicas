@@ -1,0 +1,291 @@
+/* ================================================================
+   SISTEMA DE DISEÑO CLÍNICO — Corporate Minimal Medical
+   Referencia: Epic Systems · Meditech Expanse · NHS Digital System
+   Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+   Autores: Jeremy Acosta & Eli Araujo · USM 2026
+================================================================ */
+
+/* Fuentes: Inter (UI) + JetBrains Mono (datos clínicos) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CAPA BASE: Variables Globales de Diseño ─────────────────── */
+@layer base {
+  :root {
+    /* Página y contenido */
+    --bg-page:      #fafaf9;
+    --bg-card:      #ffffff;
+    --bg-row-hover: #f5f5f4;
+
+    /* Tipografía */
+    --text-primary:   #09090b;
+    --text-secondary: #44403c;
+    --text-muted:     #78716c;
+    --text-disabled:  #a8a29e;
+
+    /* Bordes */
+    --border-default: #e7e5e4;
+    --border-focus:   #1e54b7;
+    --border-strong:  #d6d3d1;
+
+    /* Sombras */
+    --shadow-card:   0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --shadow-raised: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+
+    /* Sidebar Hospital */
+    --sidebar-bg:        #0a1a35;
+    --sidebar-header-bg: #05101f;
+    --sidebar-hover:     #112a52;
+    --sidebar-active:    #1e54b7;
+    --sidebar-text:      #93b5ea;
+    --sidebar-text-muted:#5b7da8;
+    --sidebar-border:    rgba(255,255,255,0.06);
+
+    /* Sidebar Paciente */
+    --sidebar-pac-bg:     #064e3b;
+    --sidebar-pac-header: #022c22;
+    --sidebar-pac-hover:  #065f46;
+    --sidebar-pac-active: #047857;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Scrollbar clínico — fino y discreto */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+}
+
+/* ── CAPA DE COMPONENTES: Clases Reutilizables ───────────────── */
+@layer components {
+
+  /* ── BOTONES ─────────────────────────────────────────────── */
+
+  /* Primario — Azul institucional (Epic-like CTA) */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2.5 rounded-lg
+           bg-hp-600 text-white text-sm font-semibold
+           shadow-card hover:bg-hp-500 active:bg-hp-700
+           transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hp-600 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Secundario — Borde + fondo blanco */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2.5 rounded-lg
+           bg-white text-n-800 text-sm font-medium
+           border border-n-200 shadow-card
+           hover:bg-n-100 hover:border-n-300 active:bg-n-200
+           transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hp-600 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Fantasma — Solo borde, sin fondo */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2 rounded-lg
+           text-n-600 text-sm font-medium
+           hover:bg-n-100 hover:text-n-800
+           transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hp-600 focus-visible:ring-offset-2;
+  }
+
+  /* Peligro — Rojo para acciones destructivas */
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2
+           px-4 py-2.5 rounded-lg
+           bg-cl-urgent text-white text-sm font-semibold
+           shadow-card hover:bg-red-800 active:bg-red-900
+           transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* ── INPUTS CLÍNICOS ─────────────────────────────────────── */
+
+  .input-clinical {
+    @apply w-full px-3.5 py-2.5
+           bg-white border border-n-200 rounded-lg
+           text-n-800 text-sm font-normal placeholder-n-400
+           shadow-inner-sm
+           focus:outline-none focus:ring-2 focus:ring-hp-600/20 focus:border-hp-600
+           transition-all duration-150
+           disabled:bg-n-100 disabled:text-n-500 disabled:cursor-not-allowed;
+  }
+
+  /* Dato clínico en fuente mono (cédulas, N° historia, códigos) */
+  .input-mono {
+    @apply input-clinical font-mono tracking-wide;
+  }
+
+  /* Label de campo de formulario */
+  .label-field {
+    @apply block text-[10px] font-bold text-n-600 uppercase tracking-widest mb-1.5;
+  }
+
+  /* ── TARJETAS ─────────────────────────────────────────────── */
+
+  /* Card blanca estándar */
+  .card {
+    @apply bg-white border border-n-200 rounded-xl shadow-card;
+  }
+
+  /* Card con padding incluido */
+  .card-padded {
+    @apply card p-5;
+  }
+
+  /* Card con borde lateral de acento (KPI clínico) */
+  .card-accent-blue   { @apply card border-l-[3px] border-l-hp-600; }
+  .card-accent-green  { @apply card border-l-[3px] border-l-cl-ok; }
+  .card-accent-amber  { @apply card border-l-[3px] border-l-cl-warn; }
+  .card-accent-red    { @apply card border-l-[3px] border-l-cl-urgent; }
+  .card-accent-purple { @apply card border-l-[3px] border-l-purple-700; }
+
+  /* ── BADGES CLÍNICOS ─────────────────────────────────────── */
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded
+           text-[10px] font-bold uppercase tracking-wider;
+  }
+
+  .badge-blue   { @apply badge bg-hp-50    text-hp-700    border border-hp-200; }
+  .badge-green  { @apply badge bg-cl-ok-bg text-cl-ok     border border-green-200; }
+  .badge-amber  { @apply badge bg-cl-warn-bg text-cl-warn border border-amber-200; }
+  .badge-red    { @apply badge bg-cl-urg-bg text-cl-urgent border border-red-200; }
+  .badge-slate  { @apply badge bg-n-100    text-n-600     border border-n-200; }
+  .badge-purple { @apply badge bg-purple-50 text-purple-800 border border-purple-200; }
+
+  /* Punto de estado (semáforo de triaje) */
+  .triage-dot-I   { @apply w-2.5 h-2.5 rounded-full bg-cl-urgent ring-2 ring-cl-urg-bg; }
+  .triage-dot-II  { @apply w-2.5 h-2.5 rounded-full bg-orange-600 ring-2 ring-orange-100; }
+  .triage-dot-III { @apply w-2.5 h-2.5 rounded-full bg-cl-warn ring-2 ring-cl-warn-bg; }
+  .triage-dot-IV  { @apply w-2.5 h-2.5 rounded-full bg-cl-ok ring-2 ring-cl-ok-bg; }
+  .triage-dot-V   { @apply w-2.5 h-2.5 rounded-full bg-n-400 ring-2 ring-n-100; }
+
+  /* ── TABLA CLÍNICA ───────────────────────────────────────── */
+
+  .table-clinical {
+    @apply w-full text-left border-collapse text-sm;
+  }
+
+  .table-clinical thead tr {
+    @apply bg-n-50 border-b border-n-200;
+  }
+
+  .table-clinical thead th {
+    @apply py-2.5 px-4 text-[10px] text-n-500 font-bold uppercase tracking-widest
+           whitespace-nowrap;
+  }
+
+  .table-clinical tbody tr {
+    @apply border-b border-n-100 hover:bg-hp-50 transition-colors duration-100;
+  }
+
+  .table-clinical tbody td {
+    @apply py-3 px-4 text-n-800;
+  }
+
+  /* ── SECCIÓN HEADER ──────────────────────────────────────── */
+
+  .section-header {
+    @apply flex items-center justify-between pb-3 mb-4 border-b border-n-200;
+  }
+
+  /* ── DATO CLÍNICO (par etiqueta / valor) ─────────────────── */
+
+  .data-label {
+    @apply text-[10px] text-n-500 uppercase tracking-widest font-bold mb-0.5;
+  }
+
+  .data-value {
+    @apply text-sm font-semibold text-n-800;
+  }
+
+  .data-value-mono {
+    @apply text-sm font-mono font-bold text-n-800 tracking-wide;
+  }
+
+  /* ── DIVIDER ─────────────────────────────────────────────── */
+
+  .divider {
+    @apply border-t border-n-200 my-4;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PORTAL EFFECT HERO SLIDER — ANIMACIONES Y ESTILOS 3D
+   ══════════════════════════════════════════════════════════════ */
+@keyframes portal-halo {
+  0%, 100% {
+    transform: scale(0.95) rotate(0deg);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.08) rotate(3deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes stream-flow {
+  0% {
+    stroke-dashoffset: 48;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes radar-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-portal-halo {
+  animation: portal-halo 7s ease-in-out infinite;
+}
+
+.animate-stream-flow {
+  stroke-dasharray: 6 6;
+  animation: stream-flow 1.4s linear infinite;
+}
+
+.animate-radar-ping {
+  animation: radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.portal-glass {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+

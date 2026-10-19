@@ -1,0 +1,39 @@
+# ============================================================
+#  requirements.txt — Dependencias Backend
+#  Sistema Interoperable Hospital Baquero González
+#  Instalar con: pip install -r requirements.txt
+# ============================================================
+
+# ── Framework Web ─────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# ── Base de Datos (PostgreSQL) ────────────────────────────────
+sqlalchemy==2.0.35
+psycopg2-binary==2.9.10         # Driver nativo PostgreSQL (Python 3.13 compatible)
+alembic==1.13.3                 # Migraciones futuras de BD
+
+# ── Seguridad ─────────────────────────────────────────────────
+passlib[bcrypt]==1.7.4          # Hashing bcrypt de contraseñas
+python-jose[cryptography]==3.3.0 # Creación y validación JWT
+cryptography==43.0.1
+
+# ── Validación y Configuración ────────────────────────────────
+pydantic==2.9.2
+pydantic-settings==2.5.2        # Lectura de variables .env
+python-dotenv==1.0.1
+
+# ── HTTP y Utilerías ──────────────────────────────────────────
+python-multipart==0.0.12        # Para formularios (login form)
+httpx==0.27.2                   # Cliente HTTP para tests
+
+# ── Fechas y Zonas Horarias ───────────────────────────────────
+python-dateutil==2.9.0.post0
+
+# ── Generación de QR (Récipes) ───────────────────────────────
+qrcode[pil]==7.4.2
+Pillow==10.4.0
+
+# ── Testing ───────────────────────────────────────────────────
+pytest==8.3.3
+pytest-asyncio==0.24.0
