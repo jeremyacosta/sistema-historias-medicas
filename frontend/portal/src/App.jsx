@@ -1,6 +1,6 @@
 // ============================================================
 //  src/App.jsx — Router Principal de la Aplicación
-//  Arquitectura RBAC Modular: 4 espacios de trabajo separados
+//  Arquitectura RBAC Modular: 4 espacios de trabajo estrictamente aislados
 //  MedicoLayout · AdmisionLayout · AdminLayout · PacienteLayout
 //  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
@@ -180,34 +180,21 @@ export default function App() {
 
           {/* ══════════════════════════════════════════════════
               ESPACIO 3 — CONSOLA ADMINISTRATIVA / DIRECCIÓN
-              Roles: admin (acceso total + gestión)
+              Roles: admin (panel único exclusivo)
           ══════════════════════════════════════════════════ */}
           <Route element={<ProtectedRoute rol="admin" />}>
             <Route element={<AdminLayout />}>
-              <Route path="/admin/dashboard"  element={<AdminDashboard />} />
-              <Route path="/admin/usuarios"   element={<Placeholder titulo="Gestión de Usuarios y Roles del Sistema" />} />
-              <Route path="/admin/auditoria"  element={<Placeholder titulo="Registro de Auditoría Inmutable del Sistema" />} />
-            </Route>
-          </Route>
-
-          {/* ══════════════════════════════════════════════════
-              El admin también puede acceder a módulos médicos
-              y de admisión (sin restricción de rol)
-          ══════════════════════════════════════════════════ */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/medico/historias-admin"  element={<Placeholder titulo="Módulo M2 — Vista Administrativa" />} />
-            </Route>
-            <Route element={<AdmisionLayout />}>
-              <Route path="/admision/pacientes-admin" element={<AdmisionPacientesPage />} />
-              <Route path="/admision/morbilidad-admin" element={<Placeholder titulo="Módulo M6 — Morbilidad (Vista Admin)" />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/usuarios"  element={<Placeholder titulo="Gestión de Usuarios y Roles del Sistema" />} />
+              <Route path="/admin/auditoria" element={<Placeholder titulo="Registro de Auditoría Inmutable del Sistema" />} />
             </Route>
           </Route>
 
           {/* ══════════════════════════════════════════════════
               ESPACIO 4 — BILLETERA DIGITAL DEL PACIENTE
+              Roles: paciente
           ══════════════════════════════════════════════════ */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute rol="paciente" />}>
             <Route element={<PacienteLayout />}>
               <Route path="/paciente/dashboard"  element={<PacienteDashboard />} />
               <Route path="/paciente/recetas"    element={<PacienteDashboard />} />
