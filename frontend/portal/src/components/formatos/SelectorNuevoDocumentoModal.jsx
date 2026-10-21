@@ -1,7 +1,7 @@
-// ============================================================
+﻿// ============================================================
 //  src/components/formatos/SelectorNuevoDocumentoModal.jsx
 //  SELECTOR OFICIAL DE FORMATOS MPPS PARA ANEXAR DOCUMENTOS
-//  Hospital Dr. Ricardo Baquero González (Periférico de Petare)
+//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 

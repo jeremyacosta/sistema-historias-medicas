@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  src/modules/admision/DashboardPage.jsx — Estación de Trabajo
 //  DISEÑO: "Cosmos Clinical Command Center" — World-Class Hospital HUD
 //  Equipo: Visual Designer + UX Designer + UI Designer + Graphic Designer
@@ -265,7 +265,7 @@ export default function DashboardPage() {
           </div>
           <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-100 flex items-center justify-between">
             <span>Seguridad cripto</span>
-            <strong className="text-emerald-600 font-bold">Verificado ✓</strong>
+            <strong className="text-emerald-600 font-bold inline-flex items-center gap-1">Verificado <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg></strong>
           </p>
         </div>
 

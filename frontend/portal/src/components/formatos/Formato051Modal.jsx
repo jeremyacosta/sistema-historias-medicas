@@ -1,8 +1,8 @@
-// ============================================================
+﻿// ============================================================
 //  src/components/formatos/Formato051Modal.jsx
 //  RÉPLICA DIGITAL COMPLETA Y EXACTA: Formato Oficial MPPS 051
 //  HISTORIA DE EMERGENCIA & SALA DE SHOCK
-//  Hospital Dr. Ricardo Baquero González (Periférico de Petare)
+//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
 //  Basado en: 051_FORMATO HISTORIA DE EMERGENCIA.xlsx (R1-R108)
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
@@ -259,7 +259,7 @@ export default function Formato051Modal({
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow">
               <img
                 src="/IMSAFPL.jpg"
-                alt="Hospital Baquero González"
+                alt="Logo Hospital Periférico de Petare"
                 className="w-full h-full object-contain"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
@@ -272,7 +272,7 @@ export default function Formato051Modal({
                 <span className="text-xs text-slate-400">· Trauma Shock & Emergencia</span>
               </div>
               <h2 className="text-sm sm:text-base font-black tracking-tight text-white">
-                Historia de Emergencia — Hospital Dr. Ricardo Baquero González
+                Historia de Emergencia — Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
               </h2>
             </div>
           </div>
@@ -352,7 +352,7 @@ export default function Formato051Modal({
                 <div>
                   <p className="font-black text-[10px] tracking-tight text-slate-600">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
                   <p className="font-black text-xs text-slate-900">MINISTERIO DEL PODER POPULAR PARA LA SALUD</p>
-                  <p className="font-bold text-[11px] text-slate-800">HOSPITAL DR. RICARDO BAQUERO GONZÁLEZ</p>
+                  <p className="font-bold text-[11px] text-slate-800">Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</p>
                   <p className="font-black text-xs text-blue-900 tracking-wider mt-0.5">HISTORIA DE EMERGENCIA (FORM. 051)</p>
                 </div>
               </div>
@@ -1314,7 +1314,7 @@ export default function Formato051Modal({
 
             {/* R108: Pie de Formato Oficial */}
             <div className="pt-2 flex items-center justify-between text-[10px] text-slate-500 font-bold">
-              <span>HOSPITAL DR. RICARDO BAQUERO GONZÁLEZ · SERVICIO DE EMERGENCIA</span>
+              <span>Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</span>
               <span className="font-mono font-black text-slate-900 text-xs">FORM. 051</span>
             </div>
 

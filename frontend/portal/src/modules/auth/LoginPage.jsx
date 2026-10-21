@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  src/modules/auth/LoginPage.jsx
 //  DISEÑO: "Cosmos Medical" — World-Class Healthcare Enterprise Login
 //  Equipo de diseño: UX + UI + Visual + Graphic Designer
@@ -271,7 +271,7 @@ function GraficoEscena({ sceneId }) {
                 {p.label}
               </span>
               {i < pasos.length - 1 && p.done && (
-                <span className="ml-auto text-[9px] text-violet-300">✓</span>
+                <svg className="ml-auto w-3 h-3 text-violet-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               )}
             </div>
           ))}
