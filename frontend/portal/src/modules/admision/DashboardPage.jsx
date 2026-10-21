@@ -403,8 +403,8 @@ export default function DashboardPage() {
                 <th className="py-3.5 px-5">Triaje Manchester</th>
                 <th className="py-3.5 px-4">Historia / Cédula</th>
                 <th className="py-3.5 px-4">Paciente & Grupo</th>
-                <th className="py-3.5 px-4">Signos Vitales</th>
-                <th className="py-3.5 px-5">Motivo de Ingreso</th>
+                <th className="py-3.5 px-4 min-w-[220px]">Signos Vitales (Telemetría)</th>
+                <th className="py-3.5 px-5 min-w-[210px]">Motivo de Ingreso</th>
                 <th className="py-3.5 px-3">Espera SLA</th>
                 <th className="py-3.5 px-4">Estado</th>
                 <th className="py-3.5 px-5 text-right">Acción Clínica</th>
@@ -461,17 +461,31 @@ export default function DashboardPage() {
                   </td>
 
                   {/* Signos Vitales HUD */}
-                  <td className="py-4 px-4 whitespace-nowrap font-mono">
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]">
-                      <span className="text-slate-600">TA: <strong className="text-slate-900">{p.signos.ta}</strong></span>
-                      <span className="text-slate-600">SpO2: <strong className="text-emerald-700">{p.signos.spo2}</strong></span>
-                      <span className="text-slate-600">FC: <strong className="text-slate-900">{p.signos.fc}</strong></span>
-                      <span className="text-slate-600">T°: <strong className="text-slate-900">{p.signos.temp}</strong></span>
+                  <td className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">
+                    <div className="bg-slate-50/90 border border-slate-200/90 rounded-xl px-3 py-2 w-[210px] shadow-xs hover:border-blue-300 transition-colors">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[11px] leading-tight">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-400">T.A:</span>
+                          <span className="text-slate-900 font-black">{p.signos.ta}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-400">SpO₂:</span>
+                          <span className="text-emerald-600 font-black">{p.signos.spo2}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-400">F.C:</span>
+                          <span className="text-slate-800 font-bold">{p.signos.fc}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-slate-400">T°:</span>
+                          <span className="text-slate-800 font-bold">{p.signos.temp}</span>
+                        </div>
+                      </div>
                     </div>
                   </td>
 
                   {/* Motivo de Consulta */}
-                  <td className="py-4 px-5 max-w-xs">
+                  <td className="py-4 px-5 min-w-[210px] max-w-sm">
                     <p className="text-xs text-slate-700 font-medium line-clamp-2 leading-relaxed" title={p.motivo}>
                       {p.motivo}
                     </p>
