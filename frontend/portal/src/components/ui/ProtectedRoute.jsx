@@ -36,12 +36,12 @@ export default function ProtectedRoute({
 
   // Verifica permiso RBAC si se especificó
   if (permiso && !tienePermiso(permiso)) {
-    return <Navigate to="/acceso-denegado" replace />
+    return <Navigate to="/acceso-denegado" state={{ permisoRequerido: permiso }} replace />
   }
 
   // Verifica rol si se especificó
   if (rol && !tieneRol(rol)) {
-    return <Navigate to="/acceso-denegado" replace />
+    return <Navigate to="/acceso-denegado" state={{ rolRequerido: rol }} replace />
   }
 
   return <Outlet />

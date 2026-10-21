@@ -289,3 +289,35 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* ── Estilos de Impresión Oficial (Hojas Clínicas MPPS) ─── */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  aside, header, footer, nav, button, .no-print {
+    display: none !important;
+  }
+  .printable-sheet {
+    box-shadow: none !important;
+    border: 2px solid black !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 10px !important;
+  }
+}
+
+/* ── Modo Documento Inmutable (Cerrado por normativa legal MPPS) ── */
+fieldset.inmutable-sheet input,
+fieldset.inmutable-sheet textarea,
+fieldset.inmutable-sheet select {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #0f172a !important;
+  cursor: default !important;
+  background-color: transparent !important;
+  user-select: text !important;
+}
+
+

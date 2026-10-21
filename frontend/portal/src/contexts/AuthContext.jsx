@@ -54,8 +54,9 @@ export function AuthProvider({ children }) {
 
   // ── Helper RBAC: ¿tiene este permiso? ────────────────────
   const tienePermiso = useCallback((permiso) => {
+    if (usuario?.rol === 'admin') return true
     return permisos.includes(permiso)
-  }, [permisos])
+  }, [permisos, usuario])
 
   // ── Helper: ¿tiene este rol? ──────────────────────────────
   const tieneRol = useCallback((rol) => {
