@@ -115,7 +115,7 @@ export default function Formato001Modal({
                 <span className="text-xs text-slate-400">· Distrito Sanitario N° 7</span>
               </div>
               <h2 className="text-sm sm:text-base font-black tracking-tight text-white">
-                Récipe Médico Oficial — Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+                Récipe Médico Oficial (Rp. & Indicaciones)
               </h2>
             </div>
           </div>

@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  src/api/pacientes.js — Servicios del Módulo M1 & Expedientes Clínicos
 //  Normativa MPPS: Inmutabilidad de Documentos y Folios Aditivos
 //  Hospital Dr. Ricardo Baquero González (Periférico de Petare)
@@ -11,7 +11,7 @@ import apiClient, { getData, getMsg } from './client'
 const MOCK_PACIENTES = [
   {
     id: 'pac-001',
-    numero_historia: 'HBG-2024-00001',
+    numero_historia: 'HPL-2024-00001',
     cedula: '30047210',
     tipo_cedula: 'V',
     nombre: 'Jeremy',
@@ -51,7 +51,7 @@ const MOCK_PACIENTES = [
         inmutable: true,
         resumen: 'Apertura formal de expediente clínico por cuadro febril y cefalea pulsátil.',
         datos: {
-          numero_historia: 'HBG-2024-00001',
+          numero_historia: 'HPL-2024-00001',
           cedula: '30047210',
           tipo_cedula: 'V',
           fecha_admision: '2026-10-19',
@@ -112,7 +112,7 @@ const MOCK_PACIENTES = [
   },
   {
     id: 'pac-002',
-    numero_historia: 'HBG-2024-00002',
+    numero_historia: 'HPL-2024-00002',
     cedula: '29921654',
     tipo_cedula: 'V',
     nombre: 'Eli',
@@ -152,7 +152,7 @@ const MOCK_PACIENTES = [
         inmutable: true,
         resumen: 'Apertura de historia para seguimiento de cuadro bronquial.',
         datos: {
-          numero_historia: 'HBG-2024-00002',
+          numero_historia: 'HPL-2024-00002',
           cedula: '29921654',
           tipo_cedula: 'V',
           fecha_admision: '2026-10-19',
@@ -192,7 +192,7 @@ const MOCK_PACIENTES = [
   },
   {
     id: 'pac-003',
-    numero_historia: 'HBG-2024-00003',
+    numero_historia: 'HPL-2024-00003',
     cedula: '5100200',
     tipo_cedula: 'V',
     nombre: 'Roberto',
@@ -232,7 +232,7 @@ const MOCK_PACIENTES = [
         inmutable: true,
         resumen: 'Ingreso urgente a sala de shock por dolor precordial y cifras tensionales 190/110 mmHg.',
         datos: {
-          numero_historia: 'HBG-2024-00003',
+          numero_historia: 'HPL-2024-00003',
           cedula: '5100200',
           tipo_cedula: 'V',
           fecha_admision: '2026-10-19',
@@ -280,7 +280,7 @@ const MOCK_PACIENTES = [
         inmutable: true,
         resumen: 'Evaluación y estabilización en shock. T.A: 160/95 mmHg, Pulso: 84 lpm. Diagnóstico: Angina inestable / Cardiopatía hipertensiva.',
         datos: {
-          historia_numero: 'HBG-2024-00003',
+          historia_numero: 'HPL-2024-00003',
           nombre_paciente: 'Roberto Pérez',
           direccion_paciente: 'Petare Norte, Calle Real, Casa 88',
           cedula_pasaporte: 'V-5100200',
@@ -448,7 +448,7 @@ export const registrarPacienteF052 = async (datos) => {
     const list = getStoredPacientes()
     const correlativo = String(list.length + 1).padStart(5, '0')
     const fechaHoraActual = new Date().toLocaleDateString('es-VE') + ' ' + new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
-    const numHistoria = datos.numero_historia || `HBG-2024-${correlativo}`
+    const numHistoria = datos.numero_historia || `HPL-2024-${correlativo}`
 
     const folio1F052 = {
       id: `doc-${Date.now()}-01`,

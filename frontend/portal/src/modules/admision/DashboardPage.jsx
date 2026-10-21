@@ -13,7 +13,7 @@ import { useAuth } from '../../contexts/AuthContext'
 // ── Censo en Vivo de Emergencias (Manchester Triage Protocol) ─
 const PACIENTES_GUARDIA = [
   {
-    historia: 'HBG-2024-00003',
+    historia: 'HPL-2024-00003',
     cedula: '5.100.200',
     nombre: 'Roberto Pérez',
     edad: '69',
@@ -33,7 +33,7 @@ const PACIENTES_GUARDIA = [
     medicoAsignado: 'Dr. H. Morales',
   },
   {
-    historia: 'HBG-2024-00001',
+    historia: 'HPL-2024-00001',
     cedula: '30.047.210',
     nombre: 'Jeremy Acosta',
     edad: '24',
@@ -54,7 +54,7 @@ const PACIENTES_GUARDIA = [
     medicoAsignado: 'Pendiente',
   },
   {
-    historia: 'HBG-2024-00002',
+    historia: 'HPL-2024-00002',
     cedula: '29.921.654',
     nombre: 'Eli Araujo',
     edad: '23',

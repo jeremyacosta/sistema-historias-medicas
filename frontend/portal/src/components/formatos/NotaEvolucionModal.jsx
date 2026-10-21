@@ -119,7 +119,7 @@ export default function NotaEvolucionModal({
                 <span className="text-xs text-slate-400">· MPPS Distrito Sanitario N° 7</span>
               </div>
               <h2 className="text-sm sm:text-base font-black tracking-tight text-white">
-                Nota de Evolución Médica — Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+                Nota de Evolución Médica (Foliada)
               </h2>
             </div>
           </div>

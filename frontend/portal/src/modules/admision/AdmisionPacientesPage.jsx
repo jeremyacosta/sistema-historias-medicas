@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  src/modules/admision/AdmisionPacientesPage.jsx
 //  MÓDULO M1 — Admisión Central y Apertura de Expediente F-052
 //  DISEÑO: "Cosmos Medical" — Clinical Command Center
@@ -89,6 +89,10 @@ export default function AdmisionPacientesPage() {
   // Estado del Paciente Seleccionado para modales
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
 
+  // Estado para alerta cuando una búsqueda de cédula no existe
+  const [alertaNoEncontrado, setAlertaNoEncontrado] = useState(null)
+  const [cedulaNuevoIngreso, setCedulaNuevoIngreso] = useState('')
+
   // 1. Modal Formato 052 (Admisión Inicial)
   const [modal052Abierto, setModal052Abierto] = useState(false)
   const [doc052Activo, setDoc052Activo] = useState(null)
@@ -142,9 +146,11 @@ export default function AdmisionPacientesPage() {
       setTerminoBusqueda(limpia)
       buscarPacientePorCedula(limpia).then((encontrado) => {
         if (encontrado) {
+          setAlertaNoEncontrado(null)
           abrirPerfil(encontrado)
         } else {
-          iniciarNuevoIngreso(limpia)
+          // No abrir modal automáticamente; alertar amistosamente
+          setAlertaNoEncontrado(limpia)
         }
       })
     }
@@ -176,6 +182,7 @@ export default function AdmisionPacientesPage() {
   const iniciarNuevoIngreso = (cedulaPrevia = '') => {
     setPacienteSeleccionado(null)
     setDoc052Activo(null)
+    setCedulaNuevoIngreso(cedulaPrevia)
     setModo052('nuevo')
     setModal052Abierto(true)
   }
@@ -341,7 +348,7 @@ export default function AdmisionPacientesPage() {
             <span className="text-3xl font-black text-slate-900 tabular-nums">{pacientes.length}</span>
             <span className="text-xs text-slate-500">en censo activo</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-2">Correlativo: HBG-2024-00003</p>
+          <p className="text-[11px] text-slate-400 mt-2">Correlativo: HPL-2024-00003</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm">
@@ -390,7 +397,7 @@ export default function AdmisionPacientesPage() {
             type="text"
             value={terminoBusqueda}
             onChange={(e) => setTerminoBusqueda(e.target.value)}
-            placeholder="Buscar por cédula (ej: 30047210), nombre completo o N° de historia HBG..."
+            placeholder="Buscar por cédula (ej: 30047210), nombre completo o N° de historia HPL..."
             className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-600 focus:outline-none text-xs font-medium text-slate-800 transition-colors shadow-inner"
           />
           <div className="absolute left-3.5 top-3 text-slate-400">
@@ -424,6 +431,52 @@ export default function AdmisionPacientesPage() {
           </select>
         </div>
       </section>
+
+      {/* Alerta si la búsqueda por cédula no arrojó resultados */}
+      {alertaNoEncontrado && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center flex-shrink-0 font-black text-sm shadow-xs">
+              <svg className="w-5 h-5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-amber-950 flex items-center gap-2">
+                <span>Expediente No Encontrado en Censo Hospitalario</span>
+                <span className="font-mono bg-amber-200/80 px-2 py-0.5 rounded text-[11px] text-amber-900 font-bold">
+                  C.I: V-{alertaNoEncontrado}
+                </span>
+              </p>
+              <p className="text-xs text-amber-900/80 mt-1 leading-relaxed">
+                No existe ninguna historia clínica previa vinculada a esta cédula en el censo activo del hospital.
+                Si se trata de un paciente de nuevo ingreso o una emergencia, puede iniciar formalmente la apertura de su expediente oficial.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 flex-shrink-0 self-end sm:self-center">
+            <button
+              type="button"
+              onClick={() => {
+                const ced = alertaNoEncontrado
+                setAlertaNoEncontrado(null)
+                iniciarNuevoIngreso(ced)
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all cursor-pointer"
+            >
+              <IconPlusCircle />
+              <span>Apertura Historia (Formato 052)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAlertaNoEncontrado(null)}
+              className="px-3.5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200/80 text-amber-900 text-xs font-bold transition-colors cursor-pointer"
+            >
+              Descartar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════
           4. TABLA CLÍNICA DE CENSO Y EXPEDIENTES FOLIADOS

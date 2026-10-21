@@ -26,6 +26,7 @@ export default function Formato052Modal({
   paciente,
   documento = null,
   modo = 'ver', // 'ver' | 'nuevo'
+  cedulaInicial = '',
   alGuardar,
   onAbrirAnexar,
 }) {
@@ -101,7 +102,7 @@ export default function Formato052Modal({
     const src = (documento && documento.datos) ? documento.datos : paciente
     if (src) {
       setDatos({
-        numero_historia: src.numero_historia || paciente?.numero_historia || 'HBG-2024-00004',
+        numero_historia: src.numero_historia || paciente?.numero_historia || 'HPL-2024-00004',
         cedula: src.cedula ? String(src.cedula).replace(/\D/g, '') : '',
         tipo_cedula: src.tipo_cedula || 'V',
         fecha_admision: src.fecha_admision ? (String(src.fecha_admision).includes(' ') ? src.fecha_admision.split(' ')[0] : src.fecha_admision) : new Date().toISOString().split('T')[0],
@@ -149,8 +150,8 @@ export default function Formato052Modal({
     } else {
       // Plantilla en blanco para nuevo ingreso
       setDatos({
-        numero_historia: `HBG-2024-${String(Date.now()).slice(-5)}`,
-        cedula: '',
+        numero_historia: `HPL-2024-${String(Date.now()).slice(-5)}`,
+        cedula: cedulaInicial || '',
         tipo_cedula: 'V',
         fecha_admision: new Date().toISOString().split('T')[0],
         hora_admision: new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }),
@@ -233,12 +234,12 @@ export default function Formato052Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-5xl max-h-[96vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-300 shadow-2xl w-full max-w-5xl xl:max-w-6xl max-h-[96vh] flex flex-col overflow-hidden">
 
-        {/* ── BARRA SUPERIOR DE HERRAMIENTAS ── */}
-        <header className="bg-[#091528] text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow">
+        {/* ── BARRA SUPERIOR INSTITUCIONAL (COSMOS COMMAND HEADER) ── */}
+        <header className="bg-[#091528] text-white px-5 sm:px-7 py-3.5 flex items-center justify-between flex-shrink-0 border-b border-slate-800/80">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow-md">
               <img
                 src="/IMSAFPL.jpg"
                 alt="Logo Hospital Periférico de Petare"
@@ -246,46 +247,22 @@ export default function Formato052Modal({
                 onError={(e) => { e.target.style.display = 'none' }}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-blue-600/30 text-blue-300 border border-blue-500/30">
-                  {esInmutable ? 'FORM. 052 · EXPEDIENTE FOLIADO' : 'FORM. 052 OFICIAL INTERACTIVO'}
+                <span className="text-[10px] font-mono font-black uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                  {esInmutable ? 'FORM. 052 · EXPEDIENTE FOLIADO' : 'FORM. 052 MPPS'}
                 </span>
-                <span className="text-xs text-slate-400">· MPPS Distrito Sanitario N° 7</span>
+                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                  Distrito Sanitario N° 7 · Red Pública
+                </span>
               </div>
-              <h2 className="text-sm sm:text-base font-black tracking-tight text-white">
-                Historia Clínica P-1 (Admisión) — Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+              <h2 className="text-sm sm:text-base font-black tracking-tight text-white truncate mt-0.5">
+                Historia Clínica P-1 (Admisión Central)
               </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Selector de Caras de la Planilla */}
-            <div className="inline-flex rounded-xl bg-slate-800/80 p-1 border border-slate-700">
-              <button
-                type="button"
-                onClick={() => setCaraActiva('anverso')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  caraActiva === 'anverso'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Anverso (Datos Clínicos)
-              </button>
-              <button
-                type="button"
-                onClick={() => setCaraActiva('dorso')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  caraActiva === 'dorso'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Dorso (Autorización & Legal)
-              </button>
-            </div>
-
+          <div className="flex items-center gap-2.5 flex-shrink-0">
             {esInmutable ? (
               onAbrirAnexar && (
                 <button
@@ -300,14 +277,14 @@ export default function Formato052Modal({
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
-                  <span>Anexar Documento</span>
+                  <span className="hidden sm:inline">Anexar Documento</span>
                 </button>
               )
             ) : (
               <button
                 type="submit"
                 form="form-052-interactivo"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
                 title="Foliar y guardar la apertura del expediente"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -323,7 +300,7 @@ export default function Formato052Modal({
               className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
               title="Imprimir Planilla Oficial 052"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
             </button>
@@ -332,6 +309,7 @@ export default function Formato052Modal({
               type="button"
               onClick={cerrar}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Cerrar ventana"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -340,39 +318,66 @@ export default function Formato052Modal({
           </div>
         </header>
 
+        {/* ── SUB-BARRA CLÍNICA: SELECTOR DE CARAS & ESTADO DEL EXPEDIENTE ── */}
+        <div className="bg-[#0f1d33] border-b border-slate-800 px-5 sm:px-7 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 flex-shrink-0">
+          {/* Selector de Caras de la Planilla */}
+          <div className="inline-flex rounded-xl bg-slate-900/90 p-1 border border-slate-700/80">
+            <button
+              type="button"
+              onClick={() => setCaraActiva('anverso')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                caraActiva === 'anverso'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Cara 1: Anverso (Datos Clínicos)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCaraActiva('dorso')}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                caraActiva === 'dorso'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+              </svg>
+              <span>Cara 2: Dorso (Autorización & Legal)</span>
+            </button>
+          </div>
+
+          {/* Telemetría y Estado de Custodia */}
+          <div className="flex items-center gap-3 text-xs">
+            {esInmutable ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                {documento?.folio ? `FOLIO #${String(documento.folio).padStart(3, '0')}` : 'FOLIO #001'} · INMUTABLE
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                APERTURA DE EXPEDIENTE
+              </span>
+            )}
+            <span className="font-mono text-slate-300 font-medium text-[11px] hidden md:inline">
+              HISTORIA N°: <strong className="text-white font-black">{datos.numero_historia || 'POR ASIGNAR'}</strong>
+            </span>
+          </div>
+        </div>
+
         {/* Notificación de guardado exitoso */}
         {guardadoExitoso && (
-          <div className="bg-emerald-600 text-white text-xs font-bold py-2 px-4 text-center flex items-center justify-center gap-2 animate-in fade-in">
+          <div className="bg-emerald-600 text-white text-xs font-bold py-2.5 px-6 text-center flex items-center justify-center gap-2 animate-in fade-in flex-shrink-0">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             <span>¡Expediente Formato 052 registrado y foliado exitosamente como Folio #001 inmutable!</span>
-          </div>
-        )}
-
-        {/* Barra de estado: Inmutable vs Nuevo Ingreso */}
-        {esInmutable ? (
-          <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-amber-900 gap-2">
-            <span className="flex items-center gap-2 font-semibold">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-600 animate-pulse flex-shrink-0" />
-              <strong className="uppercase bg-amber-200/80 px-2 py-0.5 rounded text-amber-950 font-black">
-                {documento?.folio ? `Folio #${String(documento.folio).padStart(3, '0')}` : 'Folio #001'} · Documento Cerrado e Inmutable:
-              </strong>
-              <span>Por normativa legal MPPS, este expediente no puede modificarse. Los cambios y evoluciones deben sumarse en documentos nuevos.</span>
-            </span>
-            <span className="font-mono font-bold text-amber-900 whitespace-nowrap">
-              EXPEDIENTE CERRADO
-            </span>
-          </div>
-        ) : (
-          <div className="bg-blue-50 border-b border-blue-200 px-6 py-2 flex items-center justify-between text-xs text-blue-900">
-            <span className="flex items-center gap-2 font-semibold">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-              Apertura de Expediente Nuevo (F-052) — Completa los datos iniciales de admisión. Al guardar, quedará sellado e inmutable.
-            </span>
-            <span className="font-mono font-bold text-blue-800">
-              {datos.numero_historia || 'NUEVO EXPEDIENTE'}
-            </span>
           </div>
         )}
 
@@ -411,7 +416,7 @@ export default function Formato052Modal({
                           value={datos.numero_historia}
                           onChange={(e) => handleChange('numero_historia', e.target.value)}
                           className="font-mono font-black text-blue-800 text-xs w-full text-right bg-transparent focus:bg-white focus:outline-none"
-                          placeholder="HBG-2024-XXXXX"
+                          placeholder="HPL-2024-XXXXX"
                         />
                       </div>
                       <div className="px-3 py-1 flex items-center justify-between gap-2">

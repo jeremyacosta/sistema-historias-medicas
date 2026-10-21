@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  src/modules/paciente/PacienteDashboard.jsx — Billetera de Salud Digital
 //  DISEÑO: "Cosmos Medical" — Wallet & Emergency QR
 //  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
@@ -19,7 +19,7 @@ export default function PacienteDashboard() {
   const [copiado, setCopiado] = useState(false)
 
   const datosPaciente = {
-    historia: esJeremy ? 'HBG-2024-00001' : 'HBG-2024-00002',
+    historia: esJeremy ? 'HPL-2024-00001' : 'HPL-2024-00002',
     cedula: esJeremy ? '30.047.210' : '29.921.654',
     nombre: esJeremy ? 'Jeremy Acosta' : 'Eli Araujo',
     fechaNacimiento: esJeremy ? '15 de Mayo de 2000 (24 años)' : '22 de Marzo de 2001 (23 años)',

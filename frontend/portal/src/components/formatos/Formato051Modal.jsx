@@ -251,7 +251,7 @@ export default function Formato051Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-5xl max-h-[96vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-300 shadow-2xl w-full max-w-5xl xl:max-w-6xl max-h-[96vh] flex flex-col overflow-hidden">
         
         {/* ── BARRA SUPERIOR DE HERRAMIENTAS ── */}
         <header className="bg-[#091528] text-white px-6 py-4 flex items-center justify-between flex-shrink-0 border-b border-slate-800">
@@ -272,7 +272,7 @@ export default function Formato051Modal({
                 <span className="text-xs text-slate-400">· Trauma Shock & Emergencia</span>
               </div>
               <h2 className="text-sm sm:text-base font-black tracking-tight text-white">
-                Historia de Emergencia — Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+                Historia de Emergencia (Trauma Shock)
               </h2>
             </div>
           </div>
@@ -364,7 +364,7 @@ export default function Formato051Modal({
                   value={datos.historia_numero}
                   onChange={(e) => handleChange('historia_numero', e.target.value)}
                   className="font-mono font-black text-sm text-blue-900 text-right bg-transparent w-full focus:outline-none"
-                  placeholder="HBG-2024-XXXXX"
+                  placeholder="HPL-2024-XXXXX"
                   required
                 />
               </div>
