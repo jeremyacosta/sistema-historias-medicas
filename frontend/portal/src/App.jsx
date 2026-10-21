@@ -1,24 +1,41 @@
 // ============================================================
 //  src/App.jsx — Router Principal de la Aplicación
-//  Define todas las rutas, layouts y protecciones RBAC
+//  Arquitectura RBAC Modular: 4 espacios de trabajo separados
+//  MedicoLayout · AdmisionLayout · AdminLayout · PacienteLayout
+//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
-import ProtectedRoute   from './components/ui/ProtectedRoute'
-import HospitalLayout   from './layouts/HospitalLayout'
-import PacienteLayout   from './layouts/PacienteLayout'
-import LoginPage        from './modules/auth/LoginPage'
-import DashboardPage    from './modules/admision/DashboardPage'
+import ProtectedRoute        from './components/ui/ProtectedRoute'
+import PacienteLayout        from './layouts/PacienteLayout'
+import MedicoLayout          from './layouts/MedicoLayout'
+import AdmisionLayout        from './layouts/AdmisionLayout'
+import AdminLayout           from './layouts/AdminLayout'
+import LoginPage             from './modules/auth/LoginPage'
+// ── Módulo Médico ─────────────────────────────────────────────
+import MedicoDashboard       from './modules/medico/MedicoDashboard'
+// ── Módulo Admisión ───────────────────────────────────────────
+import DashboardPage         from './modules/admision/DashboardPage'
 import AdmisionPacientesPage from './modules/admision/AdmisionPacientesPage'
-import PacienteDashboard from './modules/paciente/PacienteDashboard'
+// ── Módulo Admin ──────────────────────────────────────────────
+import AdminDashboard        from './modules/admin/AdminDashboard'
+// ── Módulo Paciente ───────────────────────────────────────────
+import PacienteDashboard     from './modules/paciente/PacienteDashboard'
 
-// ── Páginas placeholder para módulos futuros (Fases 3-9) ────
+// ── Página placeholder para módulos en desarrollo ────────────
 const Placeholder = ({ titulo }) => (
-  <div className="card text-center py-16">
-    <p className="text-4xl mb-4">🏗️</p>
-    <h2 className="text-xl font-bold text-gray-800">{titulo}</h2>
-    <p className="text-gray-500 text-sm mt-2">Este módulo se implementará en la próxima fase del proyecto.</p>
+  <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm text-center py-16 px-6 max-w-lg mx-auto my-8">
+    <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+      <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    </div>
+    <h2 className="text-lg font-bold text-slate-800">{titulo}</h2>
+    <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">
+      Módulo oficial en fase de despliegue según el cronograma de investigación TEG 2026.
+    </p>
   </div>
 )
 
@@ -36,11 +53,19 @@ const AccesoDenegado = () => {
     navigate('/login')
   }
 
+  // Determinar ruta de regreso según rol
+  const rutaRegreso = {
+    admin:    '/admin/dashboard',
+    medico:   '/medico/dashboard',
+    admision: '/admision/dashboard',
+    paciente: '/paciente/dashboard',
+  }[usuario?.rol] || '/login'
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4">
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl max-w-lg w-full p-8 text-center space-y-6">
-        
-        {/* Icono de Seguridad SVG (Cero Emojis) */}
+
+        {/* Icono de Seguridad SVG */}
         <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-sm">
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -61,36 +86,26 @@ const AccesoDenegado = () => {
             {esPaciente ? (
               <>
                 Has iniciado sesión con tu cuenta de <strong>Paciente</strong> (
-                <span className="font-bold text-slate-800">{usuario?.nombre_completo || 'Jeremy Acosta'}</span> · C.I: {usuario?.cedula}).
-                El módulo al que intentas acceder pertenece a la <strong>Admisión Central y Gestión Clínica</strong> del hospital, reservada exclusivamente para Médicos y Personal Acreditado.
+                <span className="font-bold text-slate-800">{usuario?.nombre_completo}</span> · C.I: {usuario?.cedula}).
+                El módulo al que intentas acceder pertenece al área hospitalaria, reservada exclusivamente para personal acreditado.
               </>
             ) : (
               <>
                 Tu cuenta de <strong className="text-slate-800">{usuario?.nombre_completo || 'Personal Clínico'}</strong> (Rol: {usuario?.rol || 'No asignado'})
-                no cuenta con el permiso requerido ({permisoRequerido ? <code className="bg-slate-100 px-1 py-0.5 rounded text-blue-700 font-mono text-[11px]">{permisoRequerido}</code> : 'permiso insuficiente'}).
+                no cuenta con el permiso requerido {permisoRequerido ? <code className="bg-slate-100 px-1 py-0.5 rounded text-blue-700 font-mono text-[11px]">{permisoRequerido}</code> : ''}.
               </>
             )}
           </p>
         </div>
 
-        {/* Botones de Acción Inmediata */}
+        {/* Botones de Acción */}
         <div className="pt-2 flex flex-col sm:flex-row items-center gap-3 justify-center">
-          {esPaciente ? (
-            <button
-              onClick={() => navigate('/paciente/dashboard')}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
-            >
-              Ir a mi Billetera de Salud
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/hospital/dashboard')}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
-            >
-              Volver a la Estación Clínica
-            </button>
-          )}
-
+          <button
+            onClick={() => navigate(rutaRegreso)}
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
+          >
+            Volver a mi Estación
+          </button>
           <button
             onClick={handleCerrarSesion}
             className="w-full sm:w-auto px-6 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
@@ -109,7 +124,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* ── Ruta raíz → redirigir a login ── */}
+          {/* ── Ruta raíz → login ── */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* ── Login (público) ── */}
@@ -118,56 +133,90 @@ export default function App() {
           {/* ── Error de permisos ── */}
           <Route path="/acceso-denegado" element={<AccesoDenegado />} />
 
-          {/* ── Portal Hospitalario (protegido) ── */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<HospitalLayout />}>
-              <Route path="/hospital/dashboard" element={<DashboardPage />} />
-
-              {/* Módulo M1 — Admisión (Formato 052) */}
+          {/* ══════════════════════════════════════════════════
+              ESPACIO 1 — ESTACIÓN MÉDICA CLÍNICA
+              Roles: medico
+          ══════════════════════════════════════════════════ */}
+          <Route element={<ProtectedRoute rol="medico" />}>
+            <Route element={<MedicoLayout />}>
+              <Route path="/medico/dashboard" element={<MedicoDashboard />} />
               <Route
-                path="/hospital/pacientes"
-                element={<ProtectedRoute permiso="paciente:leer" />}
-              >
-                <Route index element={<AdmisionPacientesPage />} />
-              </Route>
-
-              {/* Módulo M2 — Historias Clínicas (Fase 3) */}
-              <Route
-                path="/hospital/historias"
+                path="/medico/historias"
                 element={<ProtectedRoute permiso="historia:leer" />}
               >
                 <Route index element={<Placeholder titulo="Módulo M2 — Historias Clínicas" />} />
               </Route>
-
-              {/* Módulo M3 — Récipes QR (Fase 5) */}
               <Route
-                path="/hospital/recetas"
+                path="/medico/recetas"
                 element={<ProtectedRoute permiso="receta:emitir" />}
               >
-                <Route index element={<Placeholder titulo="Módulo M3 — Récipes Médicos con Código QR" />} />
+                <Route index element={<Placeholder titulo="Módulo M5 — Récipes Médicos con Código QR" />} />
               </Route>
+              <Route path="/medico/notas" element={<Placeholder titulo="Notas de Evolución Clínica" />} />
+            </Route>
+          </Route>
 
-              {/* Módulo M4 — Morbilidad (Fase 6) */}
+          {/* ══════════════════════════════════════════════════
+              ESPACIO 2 — PORTAL DE ADMISIÓN & TRIAJE
+              Roles: admision
+          ══════════════════════════════════════════════════ */}
+          <Route element={<ProtectedRoute rol="admision" />}>
+            <Route element={<AdmisionLayout />}>
+              <Route path="/admision/dashboard" element={<DashboardPage />} />
               <Route
-                path="/hospital/morbilidad"
+                path="/admision/pacientes"
+                element={<ProtectedRoute permiso="paciente:leer" />}
+              >
+                <Route index element={<AdmisionPacientesPage />} />
+              </Route>
+              <Route
+                path="/admision/morbilidad"
                 element={<ProtectedRoute permiso="morbilidad:generar" />}
               >
-                <Route index element={<Placeholder titulo="Módulo M4 — Planilla de Morbilidad Diaria" />} />
+                <Route index element={<Placeholder titulo="Módulo M6 — Planilla de Morbilidad Diaria MPPS" />} />
               </Route>
             </Route>
           </Route>
 
-          {/* ── App del Paciente (Ciudadano - Billetera Digital) ── */}
+          {/* ══════════════════════════════════════════════════
+              ESPACIO 3 — CONSOLA ADMINISTRATIVA / DIRECCIÓN
+              Roles: admin (acceso total + gestión)
+          ══════════════════════════════════════════════════ */}
+          <Route element={<ProtectedRoute rol="admin" />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin/dashboard"  element={<AdminDashboard />} />
+              <Route path="/admin/usuarios"   element={<Placeholder titulo="Gestión de Usuarios y Roles del Sistema" />} />
+              <Route path="/admin/auditoria"  element={<Placeholder titulo="Registro de Auditoría Inmutable del Sistema" />} />
+            </Route>
+          </Route>
+
+          {/* ══════════════════════════════════════════════════
+              El admin también puede acceder a módulos médicos
+              y de admisión (sin restricción de rol)
+          ══════════════════════════════════════════════════ */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/medico/historias-admin"  element={<Placeholder titulo="Módulo M2 — Vista Administrativa" />} />
+            </Route>
+            <Route element={<AdmisionLayout />}>
+              <Route path="/admision/pacientes-admin" element={<AdmisionPacientesPage />} />
+              <Route path="/admision/morbilidad-admin" element={<Placeholder titulo="Módulo M6 — Morbilidad (Vista Admin)" />} />
+            </Route>
+          </Route>
+
+          {/* ══════════════════════════════════════════════════
+              ESPACIO 4 — BILLETERA DIGITAL DEL PACIENTE
+          ══════════════════════════════════════════════════ */}
           <Route element={<ProtectedRoute />}>
             <Route element={<PacienteLayout />}>
-              <Route path="/paciente/dashboard" element={<PacienteDashboard />} />
-              <Route path="/paciente/recetas" element={<PacienteDashboard />} />
-              <Route path="/paciente/historial" element={<PacienteDashboard />} />
+              <Route path="/paciente/dashboard"  element={<PacienteDashboard />} />
+              <Route path="/paciente/recetas"    element={<PacienteDashboard />} />
+              <Route path="/paciente/historial"  element={<PacienteDashboard />} />
               <Route path="/paciente/privacidad" element={<PacienteDashboard />} />
             </Route>
           </Route>
 
-          {/* ── Ruta no encontrada ── */}
+          {/* ── Ruta no encontrada → login ── */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

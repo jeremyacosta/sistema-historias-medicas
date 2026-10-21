@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  src/modules/auth/LoginPage.jsx
 //  DISEÑO: "Cosmos Medical" — World-Class Healthcare Enterprise Login
 //  Equipo de diseño: UX + UI + Visual + Graphic Designer
@@ -11,9 +11,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
 const RUTA_POR_ROL = {
-  admin:    '/hospital/dashboard',
-  medico:   '/hospital/dashboard',
-  admision: '/hospital/dashboard',
+  admin:    '/admin/dashboard',
+  medico:   '/medico/dashboard',
+  admision: '/admision/dashboard',
   paciente: '/paciente/dashboard',
 }
 
@@ -397,7 +397,7 @@ export default function LoginPage() {
       const cedulaLimpia = numeroCedula.replace(/\D/g, '')
       const data = await login(cedulaLimpia, password)
       const rol = data?.usuario?.rol || data?.rol
-      navigate(RUTA_POR_ROL[rol] || (perfilActivo === 'paciente' ? '/paciente/dashboard' : '/hospital/dashboard'))
+      navigate(RUTA_POR_ROL[rol] || (perfilActivo === 'paciente' ? '/paciente/dashboard' : '/admision/dashboard'))
     } catch (err) {
       const msg = err.response?.data?.message || err.response?.data?.details?.[0] || err.message || 'Credenciales incorrectas. Verifique cédula y clave.'
       setError(msg)

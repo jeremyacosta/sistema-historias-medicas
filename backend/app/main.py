@@ -27,7 +27,7 @@ app = FastAPI(
     description="""
 ## 🏥 Sistema Interoperable de Historias Médicas y Teleasistencia
 
-**Hospital Dr. Ricardo Baquero González — Petare, Caracas**
+**Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León" — MPPS Distrito Sanitario N° 7**
 
 API REST para la gestión digital de expedientes clínicos, récipes con QR
 y teleasistencia entre médicos y pacientes.
