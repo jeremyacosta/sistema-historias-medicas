@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  src/modules/admision/DashboardPage.jsx — Estación de Trabajo
 //  DISEÑO: "Cosmos Clinical Command Center" — World-Class Hospital HUD
 //  Equipo: Visual Designer + UX Designer + UI Designer + Graphic Designer
@@ -92,7 +92,7 @@ export default function DashboardPage() {
       return
     }
     setErrorBusqueda('')
-    navigate(`/hospital/pacientes?cedula=${tipoCedula}${limpia}`)
+    navigate(`/admision/pacientes?cedula=${tipoCedula}${limpia}`)
   }
 
   // Filtrado de pacientes en consola
@@ -159,7 +159,7 @@ export default function DashboardPage() {
           {/* CTA Principal de Acción Rápida */}
           <div className="flex items-center gap-3 flex-wrap flex-shrink-0">
             <button
-              onClick={() => navigate('/hospital/pacientes')}
+              onClick={() => navigate('/admision/pacientes')}
               className="group relative inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black text-sm shadow-xl shadow-blue-600/30 hover:from-blue-500 hover:to-indigo-600 active:scale-[0.98] transition-all duration-200 cursor-pointer overflow-hidden"
             >
               <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 transition-transform group-hover:rotate-90 duration-300">
@@ -508,7 +508,7 @@ export default function DashboardPage() {
                   {/* Acción Médica Directa */}
                   <td className="py-4 px-5 text-right whitespace-nowrap">
                     <button
-                      onClick={() => navigate(`/hospital/historias?historia=${p.historia}`)}
+                      onClick={() => navigate(`/medico/historias?historia=${p.historia}`)}
                       className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all cursor-pointer"
                     >
                       <span>Atender F-052</span>
@@ -547,7 +547,7 @@ export default function DashboardPage() {
 
           {/* Módulo 1 */}
           <div
-            onClick={() => navigate('/hospital/pacientes')}
+            onClick={() => navigate('/admision/pacientes')}
             className="group relative bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm hover:shadow-lg hover:border-blue-400 transition-all duration-200 cursor-pointer flex flex-col justify-between"
           >
             <div>
@@ -576,7 +576,7 @@ export default function DashboardPage() {
 
           {/* Módulo 2 */}
           <div
-            onClick={() => navigate('/hospital/historias')}
+            onClick={() => navigate('/medico/historias')}
             className="group relative bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm hover:shadow-lg hover:border-orange-400 transition-all duration-200 cursor-pointer flex flex-col justify-between"
           >
             <div>
@@ -605,7 +605,7 @@ export default function DashboardPage() {
 
           {/* Módulo 5 */}
           <div
-            onClick={() => navigate('/hospital/recetas')}
+            onClick={() => navigate('/medico/recetas')}
             className="group relative bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm hover:shadow-lg hover:border-purple-400 transition-all duration-200 cursor-pointer flex flex-col justify-between"
           >
             <div>
@@ -634,7 +634,7 @@ export default function DashboardPage() {
 
           {/* Módulo 6 */}
           <div
-            onClick={() => navigate('/hospital/morbilidad')}
+            onClick={() => navigate('/admision/morbilidad')}
             className="group relative bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm hover:shadow-lg hover:border-emerald-400 transition-all duration-200 cursor-pointer flex flex-col justify-between"
           >
             <div>

@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  src/components/formatos/Formato052Modal.jsx
 //  RÉPLICA DIGITAL EXACTA E INTERACTIVA: Formato Oficial MPPS 052 P-1
 //  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
@@ -391,7 +391,7 @@ export default function Formato052Modal({
               <>
                 {/* ── ENCABEZADO INSTITUCIONAL OFICIAL (R1-R4) ── */}
                 <div className="border-b-2 border-slate-800 pb-3">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                     {/* Membrete Oficial del Ministerio y Hospital */}
                     <div className="flex items-center gap-3">
                       <div className="w-14 h-14 border border-slate-300 p-0.5 bg-white flex items-center justify-center flex-shrink-0">

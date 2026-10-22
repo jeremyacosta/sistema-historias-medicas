@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  src/components/formatos/Formato051Modal.jsx
 //  RÉPLICA DIGITAL COMPLETA Y EXACTA: Formato Oficial MPPS 051
 //  HISTORIA DE EMERGENCIA & SALA DE SHOCK
@@ -344,7 +344,7 @@ export default function Formato051Modal({
             <fieldset disabled={esInmutable} className={esInmutable ? "inmutable-sheet contents" : "contents"}>
             
             {/* 1. Encabezado Oficial (R1-R5) */}
-            <div className="border-b-2 border-slate-900 pb-3 flex items-start justify-between gap-4">
+            <div className="border-b-2 border-slate-900 pb-3 flex flex-col sm:flex-row items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 border border-slate-300 p-0.5 bg-white flex items-center justify-center flex-shrink-0">
                   <img src="/IMSAFPL.jpg" alt="Logo" className="max-h-full max-w-full object-contain" />
