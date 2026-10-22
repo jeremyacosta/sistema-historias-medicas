@@ -71,8 +71,107 @@ class UsuarioPublico(BaseModel):
     rol:            str
     ultimo_acceso:  datetime | None
     creado_en:      datetime
+    debe_cambiar_pass: bool = False
+    telefono_verificado: bool = False
+    email_verificado: bool = False
 
     model_config = {"from_attributes": True}
+
+
+# ============================================================
+#  SCHEMAS DE ONBOARDING Y RECUPERACIÓN HÍBRIDA
+# ============================================================
+
+class OnboardingRequest(BaseModel):
+    """Datos para completar el onboarding del paciente."""
+    password_nuevo: str
+    telefono: str
+    email: str
+    pregunta_seguridad: str
+    respuesta_seguridad: str
+
+    @field_validator("email")
+    @classmethod
+    def validar_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v):
+            raise ValueError("Ingrese un correo electrónico válido (ej: usuario@correo.com).")
+        return v
+
+    @field_validator("password_nuevo")
+    @classmethod
+    def validar_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("La contraseña debe tener al menos 8 caracteres.")
+        if not re.search(r"\d", v):
+            raise ValueError("La contraseña debe incluir al menos un número.")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("La contraseña debe incluir al menos una letra mayúscula.")
+        return v
+
+    @field_validator("telefono")
+    @classmethod
+    def validar_telefono(cls, v: str) -> str:
+        v = v.strip()
+        if not re.match(r"^04(12|14|24|16|26)\d{7}$", re.sub(r"[-.\s]", "", v)):
+            raise ValueError("Ingrese un número de teléfono celular venezolano válido (ej: 0412-1234567).")
+        return v
+
+    @field_validator("pregunta_seguridad")
+    @classmethod
+    def validar_pregunta(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 10:
+            raise ValueError("La pregunta de seguridad debe tener al menos 10 caracteres.")
+        return v
+
+    @field_validator("respuesta_seguridad")
+    @classmethod
+    def validar_respuesta(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 3:
+            raise ValueError("La respuesta de seguridad debe tener al menos 3 caracteres.")
+        return v
+
+
+class RecuperarPaso1Request(BaseModel):
+    """Paso 1: Validar cédula y fecha de nacimiento."""
+    cedula: str
+    fecha_nacimiento: str  # YYYY-MM-DD
+
+    @field_validator("cedula")
+    @classmethod
+    def cedula_valida(cls, v: str) -> str:
+        v = v.strip().upper()
+        v = re.sub(r"^[VEJPGvejpg]-?", "", v)
+        if not re.match(r"^\d{6,15}$", v):
+            raise ValueError("La cédula debe contener entre 6 y 15 dígitos numéricos.")
+        return v
+
+
+class RecuperarPaso2Request(BaseModel):
+    """Paso 2: Responder pregunta de seguridad y definir nueva contraseña."""
+    cedula: str
+    respuesta_seguridad: str
+    password_nuevo: str
+
+    @field_validator("cedula")
+    @classmethod
+    def cedula_valida(cls, v: str) -> str:
+        v = v.strip().upper()
+        v = re.sub(r"^[VEJPGvejpg]-?", "", v)
+        return v
+
+    @field_validator("password_nuevo")
+    @classmethod
+    def validar_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("La contraseña debe tener al menos 8 caracteres.")
+        if not re.search(r"\d", v):
+            raise ValueError("La contraseña debe incluir al menos un número.")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("La contraseña debe incluir al menos una letra mayúscula.")
+        return v
 
 
 class MeResponse(BaseModel):

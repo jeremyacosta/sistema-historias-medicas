@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import ModalSeguridadOnboarding from '../components/seguridad/ModalSeguridadOnboarding'
 
 const NAV_PACIENTE = [
   {
@@ -57,6 +58,9 @@ export default function PacienteLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuMovil, setMenuMovil] = useState(false)
+  const [onboardingCompletado, setOnboardingCompletado] = useState(false)
+
+  const debeOnboarding = Boolean(usuario?.debe_cambiar_pass && !onboardingCompletado)
 
   const handleLogout = async () => {
     await logout()
@@ -249,6 +253,12 @@ export default function PacienteLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* ── Modal Onboarding Obligatorio si tiene clave provisional ── */}
+      <ModalSeguridadOnboarding
+        isOpen={debeOnboarding}
+        onCompletado={() => setOnboardingCompletado(true)}
+      />
     </div>
   )
 }

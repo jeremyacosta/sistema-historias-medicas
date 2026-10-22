@@ -74,6 +74,13 @@ class Usuario(Base):
     actualizado_en  = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
                              onupdate=lambda: datetime.now(timezone.utc))
 
+    # Control de Onboarding y Recuperación de Pacientes
+    debe_cambiar_pass        = Column(Boolean, default=False, nullable=False)
+    pregunta_seguridad       = Column(String(200), nullable=True)
+    respuesta_seguridad_hash = Column(Text, nullable=True)
+    telefono_verificado      = Column(Boolean, default=False, nullable=False)
+    email_verificado         = Column(Boolean, default=False, nullable=False)
+
     # Relaciones
     rol             = relationship("Rol", back_populates="usuarios")
     sesiones        = relationship("SesionActiva", back_populates="usuario",

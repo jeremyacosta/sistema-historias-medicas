@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.security import (
+    hash_password,
     verify_password,
     create_access_token,
     create_refresh_token,
@@ -22,8 +23,12 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.usuario  import Usuario
+from app.models.paciente import Paciente
 from app.models.security import SesionActiva, IntentoLogin, BloqueosCuenta, AuditoriaAcceso
-from app.schemas.auth    import LoginRequest, RefreshTokenRequest, TokenResponse, MeResponse, UsuarioPublico, APIResponse
+from app.schemas.auth    import (
+    LoginRequest, RefreshTokenRequest, TokenResponse, MeResponse, UsuarioPublico, APIResponse,
+    OnboardingRequest, RecuperarPaso1Request, RecuperarPaso2Request
+)
 
 router = APIRouter(prefix="/auth", tags=["🔐 Autenticación"])
 
@@ -244,6 +249,9 @@ async def get_me(
         rol=current_user.rol.nombre,
         ultimo_acceso=current_user.ultimo_acceso,
         creado_en=current_user.creado_en,
+        debe_cambiar_pass=current_user.debe_cambiar_pass,
+        telefono_verificado=current_user.telefono_verificado,
+        email_verificado=current_user.email_verificado,
     )
     return APIResponse.success(
         data={
@@ -251,4 +259,130 @@ async def get_me(
             "permisos": getattr(current_user, "_permisos_token", []),
         },
         message="Perfil cargado correctamente."
+    )
+
+
+# ============================================================
+#  POST /auth/onboarding — Completar Onboarding de Paciente
+# ============================================================
+@router.post("/onboarding", response_model=APIResponse, summary="Completar Onboarding de Paciente")
+async def completar_onboarding(
+    body: OnboardingRequest,
+    request: Request,
+    current_user: Usuario = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Permite al paciente cambiar su clave provisional, verificar teléfono y correo,
+    y configurar su pregunta secreta de seguridad.
+    """
+    # 1. Actualizar contraseña
+    current_user.password_hash = hash_password(body.password_nuevo)
+    current_user.telefono = body.telefono
+    current_user.email = body.email
+    current_user.telefono_verificado = True
+    current_user.email_verificado = True
+
+    # 2. Guardar pregunta y hash de la respuesta (minúsculas y sin espacios extras)
+    current_user.pregunta_seguridad = body.pregunta_seguridad.strip()
+    respuesta_limpia = body.respuesta_seguridad.strip().lower()
+    current_user.respuesta_seguridad_hash = hash_password(respuesta_limpia)
+
+    # 3. Desactivar bandera de cambio de clave
+    current_user.debe_cambiar_pass = False
+    db.commit()
+
+    _auditar(db, "paciente:onboarding_completado",
+             "Onboarding de seguridad completado: clave y contacto actualizados",
+             request, usuario_id=current_user.id, cedula=current_user.cedula,
+             rol=current_user.rol.nombre, exitoso=True)
+
+    return APIResponse.success(
+        data={"debe_cambiar_pass": False},
+        message="¡Onboarding completado con éxito! Tu Billetera de Salud está totalmente activa."
+    )
+
+
+# ============================================================
+#  POST /auth/recuperar-paso1 — Validar Cédula y Fecha de Nacimiento
+# ============================================================
+@router.post("/recuperar-paso1", response_model=APIResponse, summary="Paso 1: Validar identidad para recuperación")
+async def recuperar_paso1(
+    body: RecuperarPaso1Request,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Verifica que la cédula y la fecha de nacimiento coincidan con un paciente registrado.
+    Retorna la pregunta de seguridad configurada.
+    """
+    # 1. Buscar usuario
+    usuario = db.query(Usuario).filter(Usuario.cedula == body.cedula, Usuario.activo == True).first()
+    if not usuario:
+        return APIResponse.error("No se encontró ningún expediente asociado a la cédula ingresada.", 404)
+
+    # 2. Verificar datos en la tabla pacientes (cruce clínico)
+    paciente = db.query(Paciente).filter(Paciente.cedula == body.cedula, Paciente.activo == True).first()
+    if not paciente:
+        return APIResponse.error("El usuario no posee historia clínica activa en el hospital.", 404)
+
+    # Comparar fecha_nacimiento (formato YYYY-MM-DD)
+    fecha_nac_str = paciente.fecha_nacimiento.strftime("%Y-%m-%d")
+    if fecha_nac_str != body.fecha_nacimiento:
+        return APIResponse.error("La fecha de nacimiento no coincide con los registros del hospital.", 400)
+
+    # 3. Comprobar que tenga pregunta de seguridad configurada
+    if not usuario.pregunta_seguridad or not usuario.respuesta_seguridad_hash:
+        return APIResponse.error(
+            "El paciente no ha configurado preguntas de seguridad. Debe acudir a la taquilla de Admisión del Hospital con su cédula para regenerar su acceso.",
+            400
+        )
+
+    return APIResponse.success(
+        data={
+            "cedula": usuario.cedula,
+            "nombre": f"{usuario.nombre} {usuario.apellido}",
+            "pregunta_seguridad": usuario.pregunta_seguridad,
+        },
+        message="Identidad validada con éxito. Por favor responde tu pregunta secreta."
+    )
+
+
+# ============================================================
+#  POST /auth/recuperar-paso2 — Responder Pregunta y Restablecer Clave
+# ============================================================
+@router.post("/recuperar-paso2", response_model=APIResponse, summary="Paso 2: Responder pregunta y restablecer clave")
+async def recuperar_paso2(
+    body: RecuperarPaso2Request,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Valida la respuesta a la pregunta secreta y actualiza la contraseña del paciente.
+    """
+    usuario = db.query(Usuario).filter(Usuario.cedula == body.cedula, Usuario.activo == True).first()
+    if not usuario or not usuario.respuesta_seguridad_hash:
+        return APIResponse.error("Solicitud inválida o expirada.", 400)
+
+    # Validar respuesta
+    respuesta_limpia = body.respuesta_seguridad.strip().lower()
+    if not verify_password(respuesta_limpia, usuario.respuesta_seguridad_hash):
+        _auditar(db, "paciente:recuperacion_fallida",
+                 "Intento fallido de responder pregunta de seguridad",
+                 request, usuario_id=usuario.id, cedula=usuario.cedula,
+                 rol=usuario.rol.nombre, exitoso=False)
+        return APIResponse.error("La respuesta de seguridad es incorrecta.", 400)
+
+    # Actualizar contraseña
+    usuario.password_hash = hash_password(body.password_nuevo)
+    usuario.debe_cambiar_pass = False
+    db.commit()
+
+    _auditar(db, "paciente:password_restablecido",
+             "Contraseña restablecida exitosamente mediante recuperación autónoma",
+             request, usuario_id=usuario.id, cedula=usuario.cedula,
+             rol=usuario.rol.nombre, exitoso=True)
+
+    return APIResponse.success(
+        message="¡Contraseña restablecida con éxito! Ya puedes iniciar sesión con tu nueva clave."
     )

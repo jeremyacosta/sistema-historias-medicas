@@ -9,6 +9,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import ModalRecuperarPassword from '../../components/seguridad/ModalRecuperarPassword'
 
 const RUTA_POR_ROL = {
   admin:    '/admin/dashboard',
@@ -328,6 +329,7 @@ export default function LoginPage() {
   const [perfilActivo,  setPerfilActivo]  = useState('hospital')
   const [error,         setError]         = useState('')
   const [cargando,      setCargando]      = useState(false)
+  const [modalRecuperar, setModalRecuperar] = useState(false)
 
   // ── HERO STATE ────────────────────────────────────────────
   const [sceneIdx,   setSceneIdx]   = useState(0)
@@ -794,7 +796,7 @@ export default function LoginPage() {
             {/* Selector de perfil */}
             <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm mb-6">
               {[
-                { key: 'hospital', label: 'Personal Médico' },
+                { key: 'hospital', label: 'Personal Hospitalario' },
                 { key: 'paciente', label: 'Paciente' },
               ].map(({ key, label }) => (
                 <button
@@ -857,9 +859,20 @@ export default function LoginPage() {
 
               {/* Contraseña */}
               <div>
-                <label className="block text-[11px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">
-                  Contraseña
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                    Contraseña
+                  </label>
+                  {perfilActivo === 'paciente' && (
+                    <button
+                      type="button"
+                      onClick={() => setModalRecuperar(true)}
+                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <IconLock />
@@ -968,6 +981,12 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Recuperación Autónoma de Contraseña */}
+      <ModalRecuperarPassword
+        isOpen={modalRecuperar}
+        onClose={() => setModalRecuperar(false)}
+      />
     </>
   )
 }
