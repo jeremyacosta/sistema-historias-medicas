@@ -58,7 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_usuarios_rol    ON usuarios (rol_id);
 -- ============================================================
 --  TABLA: pacientes
 --  Expediente digital según Formato Oficial 052 del Hospital
---  Dr. Ricardo Baquero González — Datos de Identificación
+--  Instituto Municipal de Salud "Ana Francisca Pérez de León" — Datos de Identificación
 -- ============================================================
 CREATE TABLE IF NOT EXISTS pacientes (
     id                  UUID            PRIMARY KEY DEFAULT uuid_generate_v4(),

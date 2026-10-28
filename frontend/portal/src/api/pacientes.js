@@ -1,7 +1,7 @@
 ﻿// ============================================================
 //  src/api/pacientes.js — Servicios del Módulo M1 & Expedientes Clínicos
 //  Normativa MPPS: Inmutabilidad de Documentos y Folios Aditivos
-//  Hospital Dr. Ricardo Baquero González (Periférico de Petare)
+//  Instituto Municipal de Salud Ana Francisca Pérez de León (Periférico de Petare)
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -399,14 +399,60 @@ export const saveStoredPacientes = (list) => {
 export const buscarPacientePorCedula = async (cedula) => {
   const cedulaLimpia = String(cedula).replace(/\D/g, '')
   try {
-    const res = await apiClient.get(`/pacientes/cedula/${cedulaLimpia}`)
+    const res = await apiClient.get(`/pacientes/buscar?q=${cedulaLimpia}`)
+    const data = getData(res)
+    if (data?.pacientes && data.pacientes.length > 0) {
+      const match = data.pacientes.find((p) => p.cedula === cedulaLimpia)
+      if (match) return match
+    }
+  } catch (err) {
+    console.warn('[buscarPacientePorCedula] Backend fallback a local:', err.message)
+  }
+  const list = getStoredPacientes()
+  const match = list.find((p) => String(p.cedula).replace(/\D/g, '') === cedulaLimpia)
+  if (match) return match
+  return null
+}
+
+/**
+ * Obtener la ficha propia del paciente autenticado (Billetera Digital)
+ */
+export const obtenerMiPerfilClinico = async () => {
+  try {
+    const res = await apiClient.get('/pacientes/me')
     return getData(res)
   } catch (err) {
-    const list = getStoredPacientes()
-    const match = list.find((p) => String(p.cedula).replace(/\D/g, '') === cedulaLimpia)
-    if (match) return match
+    console.warn('[obtenerMiPerfilClinico] Error cargando perfil:', err.message)
     return null
   }
+}
+
+/**
+ * Actualizar autónomamente tipo de sangre y alergias desde la Billetera Digital
+ */
+export const actualizarMiPerfilClinico = async ({ tipo_sangre, alergias_conocidas }) => {
+  const res = await apiClient.patch('/pacientes/me/clinico', {
+    tipo_sangre,
+    alergias_conocidas,
+  })
+  return getData(res)
+}
+
+/**
+ * Registrar Historia Clínica de Emergencia F-051 (48 horas) en backend
+ */
+export const registrarHistoria051Backend = async (datos) => {
+  const res = await apiClient.post('/historias/emergencia-051', datos)
+  return getData(res)
+}
+
+/**
+ * Consultar expediente histórico unificado del paciente (para médico)
+ */
+export const obtenerHistorialPacienteBackend = async (cedula) => {
+  const cedulaLimpia = String(cedula).replace(/\D/g, '')
+  const res = await apiClient.get(`/historias/paciente/${cedulaLimpia}`)
+  return getData(res)
 }
 
 /**
@@ -441,14 +487,33 @@ export const listarPacientes = async (params = {}) => {
  * Crear nuevo paciente y abrir expediente F-052 como Folio #1 (Inmutable)
  */
 export const registrarPacienteF052 = async (datos) => {
+  let backendData = null
   try {
-    const res = await apiClient.post('/pacientes/f052', datos)
-    return getData(res)
+    const payloadBackend = {
+      cedula: String(datos.cedula).replace(/\D/g, ''),
+      nombre: datos.nombres || datos.nombre,
+      apellido: datos.apellidos || datos.apellido,
+      fecha_nacimiento: datos.fecha_nacimiento,
+      sexo: datos.sexo || datos.genero || 'M',
+      estado_civil: datos.estado_civil || 'soltero',
+      direccion: datos.direccion || datos.direccion_actual || 'Petare, Edo. Miranda',
+      municipio: datos.municipio || 'Sucre',
+      estado_residencia: datos.estado_residencia || datos.procedencia_estado || 'Miranda',
+      telefono_principal: datos.telefono_principal || datos.telefono,
+      telefono_emergencia: datos.telefono_emergencia,
+      nombre_contacto_emergencia: datos.nombre_contacto_emergencia || datos.avisar_emergencia_a,
+      tipo_sangre: datos.tipo_sangre,
+      alergias_conocidas: datos.alergias_conocidas,
+    }
+    const res = await apiClient.post('/pacientes/', payloadBackend)
+    backendData = getData(res)
   } catch (err) {
+    console.warn('[registrarPacienteF052] Error o fallback en backend:', err.response?.data?.detail || err.message)
+  }
     const list = getStoredPacientes()
     const correlativo = String(list.length + 1).padStart(5, '0')
     const fechaHoraActual = new Date().toLocaleDateString('es-VE') + ' ' + new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })
-    const numHistoria = datos.numero_historia || `HPL-2024-${correlativo}`
+    const numHistoria = backendData?.numero_historia || datos.numero_historia || `HPL-2026-${correlativo}`
 
     const folio1F052 = {
       id: `doc-${Date.now()}-01`,
@@ -507,7 +572,6 @@ export const registrarPacienteF052 = async (datos) => {
     list.unshift(nuevo)
     saveStoredPacientes(list)
     return nuevo
-  }
 }
 
 /**

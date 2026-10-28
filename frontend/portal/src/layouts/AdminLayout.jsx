@@ -2,7 +2,7 @@
 //  src/layouts/AdminLayout.jsx
 //  Espacio de Trabajo — Consola Administrativa / Dirección
 //  Acento: Violeta Gestión #7C3AED
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 

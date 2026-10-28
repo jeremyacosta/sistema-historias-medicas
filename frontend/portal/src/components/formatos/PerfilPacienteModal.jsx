@@ -2,7 +2,7 @@
 //  src/components/formatos/PerfilPacienteModal.jsx
 //  PERFIL INTEGRAL DEL PACIENTE Y EXPEDIENTE DOCUMENTAL FOLIADO
 //  Normativa MPPS: Historial Inmutable y Cadena de Custodia (Append-Only)
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -54,7 +54,7 @@ export default function PerfilPacienteModal({
             <div className="w-12 h-12 rounded-2xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow">
               <img
                 src="/IMSAFPL.jpg"
-                alt="Logo Hospital Periférico de Petare"
+                alt="Logo Instituto Municipal de Salud Ana Francisca Pérez de León"
                 className="w-full h-full object-contain"
                 onError={(e) => { e.target.style.display = 'none' }}
               />

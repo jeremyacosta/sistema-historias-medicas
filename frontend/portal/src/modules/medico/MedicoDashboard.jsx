@@ -2,13 +2,14 @@
 //  src/modules/medico/MedicoDashboard.jsx
 //  Estación Médica de Guardia — Cosmos Clinical Command
 //  Acento: Azul Clínico #2563EB
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import HistorialClinicoPanel from '../../components/historias/HistorialClinicoPanel'
 
 // ── Pacientes activos en guardia (datos demo) ─────────────────
 const PACIENTES_GUARDIA = [
@@ -78,6 +79,7 @@ const IconPulso = () => (
 export default function MedicoDashboard() {
   const { usuario } = useAuth()
   const navigate    = useNavigate()
+  const [pacienteActivo, setPacienteActivo] = useState(null)
   const [tabActivo, setTabActivo] = useState('guardia')
 
   const nombreMedico = usuario?.nombre_completo || 'Dr. Médico de Guardia'
@@ -332,10 +334,14 @@ export default function MedicoDashboard() {
                     {/* Acción */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <button
-                        onClick={() => navigate('/medico/historias')}
-                        className="text-[10px] font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-blue-200 hover:border-blue-300"
+                        onClick={() => setPacienteActivo(p)}
+                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer border ${
+                          pacienteActivo?.historia === p.historia
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20'
+                            : 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200 hover:border-blue-300'
+                        }`}
                       >
-                        Atender
+                        {pacienteActivo?.historia === p.historia ? 'Viendo Historial' : 'Ver Historial'}
                       </button>
                     </td>
                   </tr>
@@ -345,6 +351,14 @@ export default function MedicoDashboard() {
           </table>
         </div>
       </div>
+
+      {/* Panel de Historial Clínico Unificado del Médico */}
+      {pacienteActivo && (
+        <HistorialClinicoPanel
+          paciente={pacienteActivo}
+          onClose={() => setPacienteActivo(null)}
+        />
+      )}
 
     </div>
   )

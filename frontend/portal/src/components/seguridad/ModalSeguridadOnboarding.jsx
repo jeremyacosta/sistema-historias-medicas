@@ -1,7 +1,7 @@
 // ============================================================
 //  src/components/seguridad/ModalSeguridadOnboarding.jsx
 //  DISEÑO: "Cosmos Medical" — Onboarding Obligatorio de Seguridad
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -90,7 +90,7 @@ export default function ModalSeguridadOnboarding({ isOpen, onCompletado }) {
               </span>
               <h3 className="text-lg font-black mt-1 leading-tight">Configura tu Seguridad Digital</h3>
               <p className="text-xs text-emerald-100/80">
-                Hospital Periférico de Petare · Billetera del Paciente
+                Instituto Municipal de Salud Ana Francisca Pérez de León · Billetera del Paciente
               </p>
             </div>
           </div>

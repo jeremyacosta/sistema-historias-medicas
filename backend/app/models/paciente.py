@@ -2,7 +2,7 @@
 models/paciente.py — Modelo ORM: Paciente
 ==========================================
 Mapea la tabla 'pacientes' con los campos del Formato Oficial 052
-del Hospital Dr. Ricardo Baquero González.
+del Instituto Municipal de Salud Ana Francisca Pérez de León.
 """
 
 import uuid

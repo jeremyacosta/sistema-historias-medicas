@@ -2,7 +2,7 @@
 //  src/modules/admision/AdmisionPacientesPage.jsx
 //  MÓDULO M1 — Admisión Central y Apertura de Expediente F-052
 //  DISEÑO: "Cosmos Medical" — Clinical Command Center
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -288,7 +288,7 @@ export default function AdmisionPacientesPage() {
               </span>
               <span className="text-slate-300">·</span>
               <span className="text-xs font-bold text-slate-600">
-                Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+                Instituto Municipal de Salud Ana Francisca Pérez de León
               </span>
               <span className="text-slate-300">·</span>
               <span className="text-xs font-mono font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">

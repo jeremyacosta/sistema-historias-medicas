@@ -11,6 +11,8 @@ Punto de entrada del backend. Configura:
 
 from datetime import datetime, timezone
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import time
@@ -25,9 +27,9 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="""
-## 🏥 Sistema Interoperable de Historias Médicas y Teleasistencia
+## 🏥 Sistema Interoperable de Historias Médicas y Teleasistencia · Instituto Municipal de Salud Ana Francisca Pérez de León
 
-**Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León" — MPPS Distrito Sanitario N° 7**
+**Instituto Municipal de Salud Ana Francisca Pérez de León — MPPS Distrito Sanitario N° 7**
 
 API REST para la gestión digital de expedientes clínicos, récipes con QR
 y teleasistencia entre médicos y pacientes.
@@ -94,6 +96,36 @@ async def security_headers(request: Request, call_next):
 # ============================================================
 #  MANEJO GLOBAL DE ERRORES — Formato estándar de respuesta
 # ============================================================
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Manejo uniforme de errores HTTP respetando el contrato de la API."""
+    msg = exc.detail if isinstance(exc.detail, str) else "Error en la solicitud"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "status": "error",
+            "error_code": exc.status_code,
+            "message": msg,
+            "details": [msg] if isinstance(exc.detail, str) else (exc.detail if isinstance(exc.detail, list) else []),
+        }
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Manejo de errores de validación de Pydantic."""
+    primer_error = exc.errors()[0] if exc.errors() else {}
+    campo = " -> ".join([str(loc) for loc in primer_error.get("loc", [])])
+    msg = f"Error en campo {campo}: {primer_error.get('msg', 'Dato inválido')}"
+    return JSONResponse(
+        status_code=422,
+        content={
+            "status": "error",
+            "error_code": 422,
+            "message": msg,
+            "details": [str(e) for e in exc.errors()],
+        }
+    )
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Captura errores no controlados y retorna respuesta estándar."""
@@ -103,7 +135,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "status": "error",
             "error_code": 500,
             "message": "Error interno del servidor. El equipo técnico fue notificado.",
-            "details": [],
+            "details": [str(exc)] if settings.APP_ENV == "development" else [],
         }
     )
 

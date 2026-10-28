@@ -1,7 +1,7 @@
 ﻿// ============================================================
 //  src/components/formatos/Formato001Modal.jsx
 //  RÉPLICA DIGITAL EXACTA: Formato Oficial MPPS 001 (Récipe Médico)
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  Basado en: 001_FORMATO RECIPE MEDICO.xlsx
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
@@ -102,7 +102,7 @@ export default function Formato001Modal({
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow">
               <img
                 src="/IMSAFPL.jpg"
-                alt="Logo Hospital Periférico de Petare"
+                alt="Logo Instituto Municipal de Salud Ana Francisca Pérez de León"
                 className="w-full h-full object-contain"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
@@ -192,7 +192,7 @@ export default function Formato001Modal({
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-slate-600">REPÚBLICA BOLIVARIANA DE VENEZUELA · MPPS</p>
-                  <p className="font-black text-xs text-slate-900">Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</p>
+                  <p className="font-black text-xs text-slate-900">Instituto Municipal de Salud Ana Francisca Pérez de León</p>
                   <p className="text-[10px] text-slate-500 font-semibold">DISTRITO SANITARIO N° 7 · PERIFÉRICO DE PETARE</p>
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function Formato001Modal({
             </div>
 
             <div className="mt-4 pt-2 border-t border-slate-300 flex items-center justify-between text-[10px] text-slate-500">
-              <span>Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</span>
+              <span>Instituto Municipal de Salud Ana Francisca Pérez de León</span>
               <span className="font-mono font-bold">VÁLIDO CON SELLO OFICIAL</span>
             </div>
 

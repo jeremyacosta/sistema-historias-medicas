@@ -1,12 +1,14 @@
 ﻿// ============================================================
 //  src/modules/paciente/PacienteDashboard.jsx — Billetera de Salud Digital
 //  DISEÑO: "Cosmos Medical" — Wallet & Emergency QR
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { obtenerMiPerfilClinico, actualizarMiPerfilClinico } from '../../api/pacientes'
+import ModalEditarDatosVitales from '../../components/paciente/ModalEditarDatosVitales'
 
 export default function PacienteDashboard() {
   const { usuario } = useAuth()
@@ -18,15 +20,48 @@ export default function PacienteDashboard() {
   const [permiteQRPublico, setPermiteQRPublico] = useState(true)
   const [copiado, setCopiado] = useState(false)
 
+  // Estado del perfil clínico real (Backend M1)
+  const [perfilClinico, setPerfilClinico] = useState(null)
+  const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
+  const [notificacion, setNotificacion] = useState('')
+
+  useEffect(() => {
+    async function cargarPerfil() {
+      try {
+        const data = await obtenerMiPerfilClinico()
+        if (data) {
+          setPerfilClinico(data)
+        }
+      } catch (err) {
+        console.warn('Fallback a perfil estático de demostración:', err)
+      }
+    }
+    cargarPerfil()
+  }, [])
+
+  const handleGuardarDatosVitales = async (nuevosDatos) => {
+    const data = await actualizarMiPerfilClinico(nuevosDatos)
+    if (data) {
+      setPerfilClinico(data)
+    } else {
+      setPerfilClinico((prev) => ({
+        ...prev,
+        ...nuevosDatos,
+      }))
+    }
+    setNotificacion('¡Datos vitales actualizados y registrados en auditoría clínica!')
+    setTimeout(() => setNotificacion(''), 4000)
+  }
+
   const datosPaciente = {
-    historia: esJeremy ? 'HPL-2024-00001' : 'HPL-2024-00002',
-    cedula: esJeremy ? '30.047.210' : '29.921.654',
-    nombre: esJeremy ? 'Jeremy Acosta' : 'Eli Araujo',
-    fechaNacimiento: esJeremy ? '15 de Mayo de 2000 (24 años)' : '22 de Marzo de 2001 (23 años)',
-    tipoSangre: esJeremy ? 'O Positivo (O+)' : 'A Positivo (A+)',
-    alergias: esJeremy ? 'Alergia severa a Penicilina (PNC)' : 'Ninguna conocida',
-    contactoEmergencia: esJeremy ? 'Laura Acosta (Madre) · 0412-9998877' : 'Rosa Araujo (Madre) · 0414-1112233',
-    direccion: esJeremy ? 'Barrio 24 de Marzo, Calle 5, Petare' : 'Urb. La Dolorita, Bloque 8, Petare',
+    historia: perfilClinico?.numero_historia || (esJeremy ? 'HPL-2024-00001' : 'HPL-2024-00002'),
+    cedula: perfilClinico?.cedula || (esJeremy ? '30.047.210' : '29.921.654'),
+    nombre: perfilClinico ? `${perfilClinico.nombre} ${perfilClinico.apellido}` : (esJeremy ? 'Jeremy Acosta' : 'Eli Araujo'),
+    fechaNacimiento: perfilClinico?.fecha_nacimiento || (esJeremy ? '15 de Mayo de 2000 (24 años)' : '22 de Marzo de 2001 (23 años)'),
+    tipoSangre: perfilClinico?.tipo_sangre || (esJeremy ? 'O+' : 'A+'),
+    alergias: perfilClinico?.alergias_conocidas || (esJeremy ? 'Alergia severa a Penicilina (PNC)' : 'Ninguna conocida'),
+    contactoEmergencia: perfilClinico?.nombre_contacto_emergencia ? `${perfilClinico.nombre_contacto_emergencia} · ${perfilClinico.telefono_emergencia || ''}` : (esJeremy ? 'Laura Acosta (Madre) · 0412-9998877' : 'Rosa Araujo (Madre) · 0414-1112233'),
+    direccion: perfilClinico?.direccion || (esJeremy ? 'Barrio 24 de Marzo, Calle 5, Petare' : 'Urb. La Dolorita, Bloque 8, Petare'),
     fechaEmision: '18/10/2026',
     distrito: 'Distrito Sanitario N° 7',
   }
@@ -69,6 +104,16 @@ export default function PacienteDashboard() {
 
           <div className="flex items-center gap-3 flex-wrap">
             <button
+              onClick={() => setModalEditarAbierto(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-md shadow-emerald-600/20 hover:bg-emerald-700 active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <svg className="w-4 h-4 text-emerald-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar Sangre / Alergias
+            </button>
+
+            <button
               onClick={() => window.print()}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-800 font-bold text-xs border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-[0.98] transition-all cursor-pointer"
             >
@@ -105,7 +150,7 @@ export default function PacienteDashboard() {
                   Carnet Clínico de Emergencia
                 </p>
                 <p className="text-[11px] text-white/70 font-medium">
-                  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+                  Instituto Municipal de Salud Ana Francisca Pérez de León
                 </p>
               </div>
             </div>
@@ -197,7 +242,7 @@ export default function PacienteDashboard() {
           <div className="relative my-4 p-4 rounded-2xl bg-white border-2 border-dashed border-emerald-400/60 shadow-inner flex items-center justify-center group">
             <img
               src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
-                `HOSPITAL PEREZ DE LEON - PETARE | PACIENTE: ${datosPaciente.nombre} | CEDULA: ${datosPaciente.cedula} | HISTORIA: ${datosPaciente.historia} | SANGRE: ${datosPaciente.tipoSangre} | ALERGIAS: ${datosPaciente.alergias} | CONTACTO: ${datosPaciente.contactoEmergencia}`
+                `INSTITUTO MUNICIPAL DE SALUD - ANA FRANCISCA PEREZ DE LEON - PETARE | PACIENTE: ${datosPaciente.nombre} | CEDULA: ${datosPaciente.cedula} | HISTORIA: ${datosPaciente.historia} | SANGRE: ${datosPaciente.tipoSangre} | ALERGIAS: ${datosPaciente.alergias} | CONTACTO: ${datosPaciente.contactoEmergencia}`
               )}`}
               alt="Código QR de Emergencia"
               className="w-36 h-36 object-contain rounded-lg"
@@ -335,6 +380,25 @@ export default function PacienteDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Modal Cosmos Medical para auto-gestión de Grupo Sanguíneo y Alergias */}
+      <ModalEditarDatosVitales
+        abierto={modalEditarAbierto}
+        alCerrar={() => setModalEditarAbierto(false)}
+        datosActuales={{
+          tipo_sangre: datosPaciente.tipoSangre,
+          alergias_conocidas: datosPaciente.alergias
+        }}
+        alGuardarExitoso={handleGuardarDatosVitales}
+      />
+
+      {/* Toast Notification */}
+      {notificacion && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-emerald-900 text-white shadow-xl border border-emerald-700/60 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+          <p className="text-xs font-bold">{notificacion}</p>
+        </div>
+      )}
 
     </div>
   )

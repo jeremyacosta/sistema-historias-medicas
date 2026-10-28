@@ -1,7 +1,7 @@
 // ============================================================
 //  src/components/formatos/Formato052Modal.jsx
 //  RÉPLICA DIGITAL EXACTA E INTERACTIVA: Formato Oficial MPPS 052 P-1
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  Basado en: 052_FORMATO HISTORIA CLINICA P1.xlsx
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
@@ -242,7 +242,7 @@ export default function Formato052Modal({
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow-md">
               <img
                 src="/IMSAFPL.jpg"
-                alt="Logo Hospital Periférico de Petare"
+                alt="Logo Instituto Municipal de Salud Ana Francisca Pérez de León"
                 className="w-full h-full object-contain"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
@@ -400,7 +400,7 @@ export default function Formato052Modal({
                       <div className="leading-tight text-[11px]">
                         <p className="font-bold tracking-tight">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
                         <p className="font-bold">MINISTERIO DEL PODER POPULAR PARA LA SALUD</p>
-                        <p className="font-bold text-slate-800">Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</p>
+                        <p className="font-bold text-slate-800">Instituto Municipal de Salud Ana Francisca Pérez de León</p>
                         <p className="text-[10px] text-slate-600">DISTRITO SANITARIO N° 7 · PETARE, CARACAS</p>
                         <p className="font-mono font-black text-xs text-blue-900 mt-0.5">HISTORIA CLÍNICA P-1 (ADMISIÓN)</p>
                       </div>
@@ -922,7 +922,7 @@ export default function Formato052Modal({
                   </div>
 
                   <p className="text-xs text-slate-800 leading-relaxed text-justify px-2">
-                    "El Suscrito certifica que la persona cuyo nombre aparece en el anverso de esta hoja, paciente del Hospital Periférico de Petare &quot;Dr. Ana Francisca Pérez de León&quot;, sale del Hospital contra la opinión de los médicos. Hago constar que habiendo sido advertido de los riesgos que esto implica, exonero de toda responsabilidad a los tratantes y al Hospital por las consecuencias que de ello puedan resultar."
+                    "El Suscrito certifica que la persona cuyo nombre aparece en el anverso de esta hoja, paciente del Instituto Municipal de Salud Ana Francisca Pérez de León &quot;Dr. Ana Francisca Pérez de León&quot;, sale del Hospital contra la opinión de los médicos. Hago constar que habiendo sido advertido de los riesgos que esto implica, exonero de toda responsabilidad a los tratantes y al Hospital por las consecuencias que de ello puedan resultar."
                   </p>
 
                   <div className="grid grid-cols-12 gap-4 pt-4 border-t border-slate-200 text-xs">
@@ -983,7 +983,7 @@ export default function Formato052Modal({
                 </div>
 
                 <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 pt-1">
-                  <span>DORSO OFICIAL · Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</span>
+                  <span>DORSO OFICIAL · Instituto Municipal de Salud Ana Francisca Pérez de León</span>
                   <span className="font-mono font-black text-slate-900 text-xs">FORM. 052 (REVERSO)</span>
                 </div>
 

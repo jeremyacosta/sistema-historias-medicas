@@ -2,7 +2,7 @@
 //  src/App.jsx — Router Principal de la Aplicación
 //  Arquitectura RBAC Modular: 4 espacios de trabajo estrictamente aislados
 //  MedicoLayout · AdmisionLayout · AdminLayout · PacienteLayout
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -16,6 +16,7 @@ import AdminLayout           from './layouts/AdminLayout'
 import LoginPage             from './modules/auth/LoginPage'
 // ── Módulo Médico ─────────────────────────────────────────────
 import MedicoDashboard       from './modules/medico/MedicoDashboard'
+import RegistroMorbilidadPage from './modules/medico/RegistroMorbilidadPage'
 // ── Módulo Admisión ───────────────────────────────────────────
 import DashboardPage         from './modules/admision/DashboardPage'
 import AdmisionPacientesPage from './modules/admision/AdmisionPacientesPage'
@@ -75,7 +76,7 @@ const AccesoDenegado = () => {
         {/* Badge Institucional */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-          Control de Acceso RBAC · Hospital Periférico de Petare
+          Control de Acceso RBAC · Instituto Municipal de Salud Ana Francisca Pérez de León
         </div>
 
         <div className="space-y-2">
@@ -153,6 +154,7 @@ export default function App() {
                 <Route index element={<Placeholder titulo="Módulo M5 — Récipes Médicos con Código QR" />} />
               </Route>
               <Route path="/medico/notas" element={<Placeholder titulo="Notas de Evolución Clínica" />} />
+              <Route path="/medico/morbilidad" element={<RegistroMorbilidadPage />} />
             </Route>
           </Route>
 
@@ -173,7 +175,7 @@ export default function App() {
                 path="/admision/morbilidad"
                 element={<ProtectedRoute permiso="morbilidad:generar" />}
               >
-                <Route index element={<Placeholder titulo="Módulo M6 — Planilla de Morbilidad Diaria MPPS" />} />
+                <Route index element={<RegistroMorbilidadPage />} />
               </Route>
             </Route>
           </Route>

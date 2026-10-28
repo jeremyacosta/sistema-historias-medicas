@@ -1,7 +1,7 @@
 -- ============================================================
 --  04_paciente_seguridad.sql
 --  Seguridad, Onboarding y Recuperación Híbrida de Pacientes
---  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+--  Instituto Municipal de Salud "Ana Francisca Pérez de León"
 --  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 -- ============================================================
 

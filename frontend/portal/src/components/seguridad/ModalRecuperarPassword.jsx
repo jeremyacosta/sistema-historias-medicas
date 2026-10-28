@@ -1,7 +1,7 @@
 // ============================================================
 //  src/components/seguridad/ModalRecuperarPassword.jsx
 //  DISEÑO: "Cosmos Medical" — Recuperación Autónoma de Contraseña
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -31,11 +31,12 @@ export default function ModalRecuperarPassword({ isOpen, onClose }) {
     setError('')
     setCargando(true)
     try {
-      const data = await recuperarPasswordPaso1(cedula, fechaNac)
+      const cedulaLimpia = cedula.replace(/\D/g, '')
+      const data = await recuperarPasswordPaso1(cedulaLimpia, fechaNac)
       setDatosUsuario(data)
       setPaso(2)
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Datos no coinciden con los registros del hospital.'
+      const msg = err.response?.data?.message || err.response?.data?.detail || err.message || 'Datos no coinciden con los registros del hospital.'
       setError(msg)
     } finally {
       setCargando(false)
@@ -63,10 +64,11 @@ export default function ModalRecuperarPassword({ isOpen, onClose }) {
 
     setCargando(true)
     try {
-      await recuperarPasswordPaso2(cedula, respuesta, passwordNuevo)
+      const cedulaLimpia = cedula.replace(/\D/g, '')
+      await recuperarPasswordPaso2(cedulaLimpia, respuesta, passwordNuevo)
       setPaso(3)
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Error al restablecer la contraseña.'
+      const msg = err.response?.data?.message || err.response?.data?.detail || err.message || 'Error al restablecer la contraseña.'
       setError(msg)
     } finally {
       setCargando(false)
@@ -99,7 +101,7 @@ export default function ModalRecuperarPassword({ isOpen, onClose }) {
             </div>
             <div>
               <h3 className="text-sm font-black">Recuperación de Acceso</h3>
-              <p className="text-[10px] text-slate-400">Hospital Periférico de Petare</p>
+              <p className="text-[10px] text-slate-400">Instituto Municipal de Salud Ana Francisca Pérez de León</p>
             </div>
           </div>
           <button

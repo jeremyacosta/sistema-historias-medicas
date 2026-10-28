@@ -2,7 +2,7 @@
 //  src/layouts/AdmisionLayout.jsx
 //  Espacio de Trabajo — Portal de Admisión & Triaje
 //  Acento: Ámbar Institucional #D97706
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 

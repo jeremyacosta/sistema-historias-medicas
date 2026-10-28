@@ -1,7 +1,7 @@
 ﻿// ============================================================
 //  src/components/formatos/NotaEvolucionModal.jsx
 //  NOTA OFICIAL DE EVOLUCIÓN Y MODIFICACIÓN CLÍNICA (FOLIADA)
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -106,7 +106,7 @@ export default function NotaEvolucionModal({
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow">
               <img
                 src="/IMSAFPL.jpg"
-                alt="Logo Hospital Periférico de Petare"
+                alt="Logo Instituto Municipal de Salud Ana Francisca Pérez de León"
                 className="w-full h-full object-contain"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
@@ -190,7 +190,7 @@ export default function NotaEvolucionModal({
             
             <div className="border-b-2 border-slate-900 pb-3 flex items-center justify-between">
               <div>
-                <p className="font-black text-xs text-slate-900 uppercase">Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</p>
+                <p className="font-black text-xs text-slate-900 uppercase">Instituto Municipal de Salud Ana Francisca Pérez de León</p>
                 <p className="text-[10px] text-slate-500 font-bold">NOTA DE EVOLUCIÓN CLÍNICA · MPPS DS-7</p>
                 <p className="font-bold text-slate-800 mt-1">
                   PACIENTE: {paciente?.nombre_completo || `${paciente?.nombre} ${paciente?.apellido}`} · C.I: {paciente?.cedula}

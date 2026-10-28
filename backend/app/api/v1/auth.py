@@ -9,6 +9,7 @@ Módulo M0 — Seguridad de Acceso al Sistema
 """
 
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
@@ -36,6 +37,13 @@ router = APIRouter(prefix="/auth", tags=["🔐 Autenticación"])
 # ============================================================
 #  FUNCIÓN AUXILIAR: Registrar auditoría
 # ============================================================
+def _limpiar_ip(ip: Optional[str]) -> Optional[str]:
+    """Retorna una IP válida para el tipo INET de PostgreSQL."""
+    if not ip or ip in ("testclient", "localhost"):
+        return "127.0.0.1"
+    return ip
+
+
 def _auditar(
     db: Session,
     accion: str,
@@ -48,7 +56,7 @@ def _auditar(
     detalle_error: str = None,
 ):
     """Inserta un registro inmutable en auditoria_accesos."""
-    ip = request.client.host if request.client else None
+    ip = _limpiar_ip(request.client.host if request.client else None)
     registro = AuditoriaAcceso(
         usuario_id=usuario_id,
         usuario_cedula=cedula,
@@ -81,7 +89,7 @@ async def login(
     4. Si falla: registra intento y evalúa bloqueo automático.
     5. Si éxito: emite Access Token + Refresh Token y registra sesión.
     """
-    ip = request.client.host if request.client else None
+    ip = _limpiar_ip(request.client.host if request.client else None)
 
     # ── 1. Verificar bloqueo activo ───────────────────────────
     bloqueo = db.query(BloqueosCuenta).filter(
@@ -319,23 +327,23 @@ async def recuperar_paso1(
     # 1. Buscar usuario
     usuario = db.query(Usuario).filter(Usuario.cedula == body.cedula, Usuario.activo == True).first()
     if not usuario:
-        return APIResponse.error("No se encontró ningún expediente asociado a la cédula ingresada.", 404)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se encontró ningún expediente asociado a la cédula ingresada.")
 
     # 2. Verificar datos en la tabla pacientes (cruce clínico)
     paciente = db.query(Paciente).filter(Paciente.cedula == body.cedula, Paciente.activo == True).first()
     if not paciente:
-        return APIResponse.error("El usuario no posee historia clínica activa en el hospital.", 404)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El usuario no posee historia clínica activa en el hospital.")
 
     # Comparar fecha_nacimiento (formato YYYY-MM-DD)
     fecha_nac_str = paciente.fecha_nacimiento.strftime("%Y-%m-%d")
     if fecha_nac_str != body.fecha_nacimiento:
-        return APIResponse.error("La fecha de nacimiento no coincide con los registros del hospital.", 400)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La fecha de nacimiento no coincide con los registros del hospital.")
 
     # 3. Comprobar que tenga pregunta de seguridad configurada
     if not usuario.pregunta_seguridad or not usuario.respuesta_seguridad_hash:
-        return APIResponse.error(
-            "El paciente no ha configurado preguntas de seguridad. Debe acudir a la taquilla de Admisión del Hospital con su cédula para regenerar su acceso.",
-            400
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El paciente no ha configurado preguntas de seguridad. Debe acudir a la taquilla de Admisión del Hospital con su cédula para regenerar su acceso."
         )
 
     return APIResponse.success(
@@ -362,7 +370,7 @@ async def recuperar_paso2(
     """
     usuario = db.query(Usuario).filter(Usuario.cedula == body.cedula, Usuario.activo == True).first()
     if not usuario or not usuario.respuesta_seguridad_hash:
-        return APIResponse.error("Solicitud inválida o expirada.", 400)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Solicitud inválida o expirada.")
 
     # Validar respuesta
     respuesta_limpia = body.respuesta_seguridad.strip().lower()
@@ -371,7 +379,7 @@ async def recuperar_paso2(
                  "Intento fallido de responder pregunta de seguridad",
                  request, usuario_id=usuario.id, cedula=usuario.cedula,
                  rol=usuario.rol.nombre, exitoso=False)
-        return APIResponse.error("La respuesta de seguridad es incorrecta.", 400)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La respuesta a la pregunta secreta es incorrecta. Verifique mayúsculas o acentos.")
 
     # Actualizar contraseña
     usuario.password_hash = hash_password(body.password_nuevo)

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     """
 
     # ── Información de la Aplicación ──────────────────────────
-    APP_NAME: str = "Sistema de Historias Médicas — Hospital Baquero González"
+    APP_NAME: str = 'Sistema Interoperable de Historias Médicas y Teleasistencia'
     APP_VERSION: str = "1.0.0"
     APP_ENV: str = "development"
     APP_DEBUG: bool = True

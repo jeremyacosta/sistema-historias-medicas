@@ -2,7 +2,7 @@
 //  src/components/formatos/Formato051Modal.jsx
 //  RÉPLICA DIGITAL COMPLETA Y EXACTA: Formato Oficial MPPS 051
 //  HISTORIA DE EMERGENCIA & SALA DE SHOCK
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  Basado en: 051_FORMATO HISTORIA DE EMERGENCIA.xlsx (R1-R108)
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
@@ -259,7 +259,7 @@ export default function Formato051Modal({
             <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center flex-shrink-0 shadow">
               <img
                 src="/IMSAFPL.jpg"
-                alt="Logo Hospital Periférico de Petare"
+                alt="Logo Instituto Municipal de Salud Ana Francisca Pérez de León"
                 className="w-full h-full object-contain"
                 onError={(e) => { e.target.style.display = 'none' }}
               />
@@ -352,7 +352,7 @@ export default function Formato051Modal({
                 <div>
                   <p className="font-black text-[10px] tracking-tight text-slate-600">REPÚBLICA BOLIVARIANA DE VENEZUELA</p>
                   <p className="font-black text-xs text-slate-900">MINISTERIO DEL PODER POPULAR PARA LA SALUD</p>
-                  <p className="font-bold text-[11px] text-slate-800">Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</p>
+                  <p className="font-bold text-[11px] text-slate-800">Instituto Municipal de Salud Ana Francisca Pérez de León</p>
                   <p className="font-black text-xs text-blue-900 tracking-wider mt-0.5">HISTORIA DE EMERGENCIA (FORM. 051)</p>
                 </div>
               </div>
@@ -1314,7 +1314,7 @@ export default function Formato051Modal({
 
             {/* R108: Pie de Formato Oficial */}
             <div className="pt-2 flex items-center justify-between text-[10px] text-slate-500 font-bold">
-              <span>Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"</span>
+              <span>Instituto Municipal de Salud Ana Francisca Pérez de León</span>
               <span className="font-mono font-black text-slate-900 text-xs">FORM. 051</span>
             </div>
 

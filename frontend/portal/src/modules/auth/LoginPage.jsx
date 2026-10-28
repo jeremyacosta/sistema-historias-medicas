@@ -2,7 +2,7 @@
 //  src/modules/auth/LoginPage.jsx
 //  DISEÑO: "Cosmos Medical" — World-Class Healthcare Enterprise Login
 //  Equipo de diseño: UX + UI + Visual + Graphic Designer
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -518,7 +518,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <p className="text-white text-xs font-bold leading-tight tracking-wide">
-                  Hospital Periférico de Petare
+                  Instituto Municipal de Salud Ana Francisca Pérez de León
                 </p>
                 <p className="text-white/60 text-[10px] leading-tight">
                   MPPS · Distrito Sanitario N° 7
@@ -759,7 +759,7 @@ export default function LoginPage() {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-black text-gray-900 leading-tight">Hospital Periférico de Petare</p>
+              <p className="text-sm font-black text-gray-900 leading-tight">Instituto Municipal de Salud Ana Francisca Pérez de León</p>
               <p className="text-[10px] text-gray-400">MPPS · Distrito Sanitario N° 7</p>
             </div>
           </div>
@@ -968,7 +968,7 @@ export default function LoginPage() {
               <div className="text-center">
                 <p className="text-[10px] text-gray-400 leading-relaxed">
                   <span className="font-semibold text-gray-500">
-                    Hospital Periférico de Petare
+                    Instituto Municipal de Salud Ana Francisca Pérez de León
                   </span>
                   {' '}·{' '}
                   <span className="italic">Dr. Ana Francisca Pérez de León</span>

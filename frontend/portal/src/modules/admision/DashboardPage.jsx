@@ -2,13 +2,14 @@
 //  src/modules/admision/DashboardPage.jsx — Estación de Trabajo
 //  DISEÑO: "Cosmos Clinical Command Center" — World-Class Hospital HUD
 //  Equipo: Visual Designer + UX Designer + UI Designer + Graphic Designer
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import ModalHistoria051 from '../../components/historias/ModalHistoria051'
 
 // ── Censo en Vivo de Emergencias (Manchester Triage Protocol) ─
 const PACIENTES_GUARDIA = [
@@ -83,6 +84,7 @@ export default function DashboardPage() {
   const [numeroCedula, setNumeroCedula] = useState('')
   const [filtroTriaje, setFiltroTriaje] = useState('TODOS')
   const [errorBusqueda, setErrorBusqueda] = useState('')
+  const [pacienteEmergencia, setPacienteEmergencia] = useState(null)
 
   const handleBuscarPaciente = (e) => {
     e.preventDefault()
@@ -122,7 +124,7 @@ export default function DashboardPage() {
               </span>
               <span className="text-slate-300">·</span>
               <span className="text-xs font-bold text-slate-600">
-                Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+                Instituto Municipal de Salud Ana Francisca Pérez de León
               </span>
               <span className="text-slate-300">·</span>
               <span className="text-xs font-mono font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
@@ -507,15 +509,25 @@ export default function DashboardPage() {
 
                   {/* Acción Médica Directa */}
                   <td className="py-4 px-5 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => navigate(`/medico/historias?historia=${p.historia}`)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all cursor-pointer"
-                    >
-                      <span>Atender F-052</span>
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
+                    {p.triaje === 'I' || p.triaje === 'II' ? (
+                      <button
+                        onClick={() => setPacienteEmergencia(p)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-md shadow-orange-600/20 active:scale-[0.98] transition-all cursor-pointer"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                        <span>Historia 051 · Emergencia</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => navigate('/medico/recetas')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold text-xs border border-slate-200 hover:border-blue-300 transition-all cursor-pointer"
+                      >
+                        <span>Atención Ambulatoria</span>
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    )}
                   </td>
 
                 </tr>
@@ -576,29 +588,29 @@ export default function DashboardPage() {
 
           {/* Módulo 2 */}
           <div
-            onClick={() => navigate('/medico/historias')}
+            onClick={() => setPacienteEmergencia(PACIENTES_GUARDIA[0])}
             className="group relative bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm hover:shadow-lg hover:border-orange-400 transition-all duration-200 cursor-pointer flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   </svg>
                 </div>
-                <span className="font-mono text-xs font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                  M2 · Triaje
+                <span className="font-mono text-xs font-black bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded">
+                  M2 · F-051
                 </span>
               </div>
               <h3 className="text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors">
-                Historia de Emergencia
+                Historia 051 · Emergencia (48h)
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                Registro de signos vitales, evolución clínica, notas de enfermería y diagnóstico CIE-11.
+                Atención de Guardia para emergencias calificadas (Nivel I y II). Validez de 48 horas continuas.
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-orange-600">
-              <span>Ver historias</span>
+              <span>Aperturar 051</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </div>
           </div>
@@ -663,6 +675,12 @@ export default function DashboardPage() {
 
         </div>
       </section>
+
+      {/* Modal Historia 051 de Emergencia (48 horas) */}
+      <ModalHistoria051
+        paciente={pacienteEmergencia}
+        onClose={() => setPacienteEmergencia(null)}
+      />
 
     </div>
   )

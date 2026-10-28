@@ -3,7 +3,7 @@
 //  SHELL REUTILIZABLE — Cosmos Medical Enterprise Hospital Shell
 //  Recibe: navGroups, colorAccento (hex), rolDisplay, servicioActivo
 //  Usado por: MedicoLayout, AdmisionLayout, AdminLayout
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -299,11 +299,11 @@ export default function BaseHospitalShell({
                   style={{ background: colorAccento }}
                 />
                 <h1 className="text-sm font-black text-slate-900 tracking-tight">
-                  Hospital Periférico de Petare
+                  Instituto Municipal de Salud Ana Francisca Pérez de León
                 </h1>
                 <span className="text-xs text-slate-400 hidden sm:inline">·</span>
                 <span className="text-xs font-semibold text-slate-500 hidden sm:inline italic">
-                  "Dr. Ana Francisca Pérez de León"
+                  "Ana Francisca Pérez de León"
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium hidden sm:block mt-0.5">

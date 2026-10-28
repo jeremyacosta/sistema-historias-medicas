@@ -2,7 +2,7 @@
 //  src/modules/admin/AdminDashboard.jsx
 //  Consola Administrativa — Cosmos Clinical Command
 //  Acento: Violeta Gestión #7C3AED
-//  Hospital Periférico de Petare "Dr. Ana Francisca Pérez de León"
+//  Instituto Municipal de Salud Ana Francisca Pérez de León
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
 
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
               </div>
               <h2 className="text-xl font-black leading-tight">{usuario?.nombre_completo || 'Administrador del Sistema'}</h2>
               <p className="text-violet-200 text-xs font-medium mt-0.5">
-                Acceso Total al Sistema · Hospital Periférico de Petare · MPPS
+                Acceso Total al Sistema · Instituto Municipal de Salud Ana Francisca Pérez de León · MPPS
               </p>
             </div>
           </div>
