@@ -396,6 +396,29 @@ export const saveStoredPacientes = (list) => {
 /**
  * Buscar paciente por cédula en el servidor o fallback local
  */
+/**
+ * Normalizar objeto paciente combinando datos de backend y folios locales
+ */
+const enriquecerConFolios = (paciente) => {
+  if (!paciente) return null
+  const list = getStoredPacientes()
+  const localMatch = list.find((p) => String(p.cedula).replace(/\D/g, '') === String(paciente.cedula).replace(/\D/g, ''))
+  const nombreCompleto = paciente.nombre_completo || `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim()
+  
+  return {
+    ...paciente,
+    nombre_completo: nombreCompleto,
+    tipo_cedula: paciente.tipo_cedula || 'V',
+    servicio_actual: paciente.servicio_actual || localMatch?.servicio_actual || 'Admisión Central',
+    triaje_actual: paciente.triaje_actual || localMatch?.triaje_actual || 'III',
+    documentos: (paciente.documentos && paciente.documentos.length > 0) ? paciente.documentos : (localMatch?.documentos || []),
+    edad: paciente.edad || (paciente.fecha_nacimiento ? Math.max(1, new Date().getFullYear() - new Date(paciente.fecha_nacimiento).getFullYear()) : (localMatch?.edad || 25))
+  }
+}
+
+/**
+ * Buscar paciente por cédula en el servidor o fallback local
+ */
 export const buscarPacientePorCedula = async (cedula) => {
   const cedulaLimpia = String(cedula).replace(/\D/g, '')
   try {
@@ -403,14 +426,14 @@ export const buscarPacientePorCedula = async (cedula) => {
     const data = getData(res)
     if (data?.pacientes && data.pacientes.length > 0) {
       const match = data.pacientes.find((p) => p.cedula === cedulaLimpia)
-      if (match) return match
+      if (match) return enriquecerConFolios(match)
     }
   } catch (err) {
     console.warn('[buscarPacientePorCedula] Backend fallback a local:', err.message)
   }
   const list = getStoredPacientes()
   const match = list.find((p) => String(p.cedula).replace(/\D/g, '') === cedulaLimpia)
-  if (match) return match
+  if (match) return enriquecerConFolios(match)
   return null
 }
 
@@ -439,6 +462,26 @@ export const actualizarMiPerfilClinico = async ({ tipo_sangre, alergias_conocida
 }
 
 /**
+ * Actualizar autónomamente datos de contacto y domicilio desde la Billetera Digital
+ */
+export const actualizarMisDatosContacto = async ({
+  telefono_principal,
+  telefono_emergencia,
+  nombre_contacto_emergencia,
+  direccion,
+  municipio,
+}) => {
+  const res = await apiClient.patch('/pacientes/me/contacto', {
+    telefono_principal,
+    telefono_emergencia,
+    nombre_contacto_emergencia,
+    direccion,
+    municipio,
+  })
+  return getData(res)
+}
+
+/**
  * Registrar Historia Clínica de Emergencia F-051 (48 horas) en backend
  */
 export const registrarHistoria051Backend = async (datos) => {
@@ -460,27 +503,38 @@ export const obtenerHistorialPacienteBackend = async (cedula) => {
  */
 export const listarPacientes = async (params = {}) => {
   try {
-    const res = await apiClient.get('/pacientes', { params })
-    return getData(res)
+    const res = await apiClient.get('/pacientes/', { params: { q: params.q } })
+    const items = getData(res)
+    if (Array.isArray(items) && items.length > 0) {
+      let enriquecidos = items.map(enriquecerConFolios)
+      if (params.servicio && params.servicio !== 'TODOS') {
+        enriquecidos = enriquecidos.filter((p) => (p.servicio_actual || '').toLowerCase().includes(params.servicio.toLowerCase()))
+      }
+      if (params.triaje && params.triaje !== 'TODOS') {
+        enriquecidos = enriquecidos.filter((p) => p.triaje_actual === params.triaje)
+      }
+      return enriquecidos
+    }
   } catch (err) {
-    const list = getStoredPacientes()
-    let filtrados = [...list]
-    if (params.servicio && params.servicio !== 'TODOS') {
-      filtrados = filtrados.filter((p) => p.servicio_actual.toLowerCase().includes(params.servicio.toLowerCase()))
-    }
-    if (params.triaje && params.triaje !== 'TODOS') {
-      filtrados = filtrados.filter((p) => p.triaje_actual === params.triaje)
-    }
-    if (params.q) {
-      const q = params.q.toLowerCase()
-      filtrados = filtrados.filter((p) =>
-        p.nombre_completo.toLowerCase().includes(q) ||
-        String(p.cedula).includes(q) ||
-        p.numero_historia.toLowerCase().includes(q)
-      )
-    }
-    return filtrados
+    console.warn('[listarPacientes] Fallback a local:', err.message)
   }
+  const list = getStoredPacientes()
+  let filtrados = list.map(enriquecerConFolios)
+  if (params.servicio && params.servicio !== 'TODOS') {
+    filtrados = filtrados.filter((p) => (p.servicio_actual || '').toLowerCase().includes(params.servicio.toLowerCase()))
+  }
+  if (params.triaje && params.triaje !== 'TODOS') {
+    filtrados = filtrados.filter((p) => p.triaje_actual === params.triaje)
+  }
+  if (params.q) {
+    const q = params.q.toLowerCase()
+    filtrados = filtrados.filter((p) =>
+      (p.nombre_completo || '').toLowerCase().includes(q) ||
+      String(p.cedula).includes(q) ||
+      (p.numero_historia || '').toLowerCase().includes(q)
+    )
+  }
+  return filtrados
 }
 
 /**
@@ -580,13 +634,26 @@ export const registrarPacienteF052 = async (datos) => {
  */
 export const anexarDocumentoPaciente = async (pacienteId, nuevoDoc) => {
   const list = getStoredPacientes()
-  const index = list.findIndex((p) => p.id === pacienteId || String(p.cedula).replace(/\D/g, '') === String(nuevoDoc.cedula || '').replace(/\D/g, ''))
+  let index = list.findIndex((p) => p.id === pacienteId || String(p.cedula).replace(/\D/g, '') === String(nuevoDoc.cedula || '').replace(/\D/g, ''))
 
   if (index === -1) {
-    throw new Error('Paciente no encontrado en el sistema.')
+    const nuevoLocal = {
+      id: pacienteId || `pac-${Date.now()}`,
+      numero_historia: nuevoDoc.numero_historia || `HPL-2026-${String(list.length + 1).padStart(5, '0')}`,
+      cedula: String(nuevoDoc.cedula || pacienteId).replace(/\D/g, ''),
+      tipo_cedula: 'V',
+      nombre: nuevoDoc.nombre || 'Paciente',
+      apellido: nuevoDoc.apellido || '',
+      nombre_completo: nuevoDoc.nombre_completo || `${nuevoDoc.nombre || 'Paciente'} ${nuevoDoc.apellido || ''}`.trim(),
+      servicio_actual: nuevoDoc.servicio || 'Admisión Central',
+      triaje_actual: nuevoDoc.triaje || 'III',
+      documentos: []
+    }
+    list.unshift(nuevoLocal)
+    index = 0
   }
 
-  const paciente = list[index]
+  let paciente = list[index]
   const docs = paciente.documentos || []
   const siguienteFolio = docs.length + 1
   const fechaHoraActual = new Date().toLocaleDateString('es-VE') + ' ' + new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })

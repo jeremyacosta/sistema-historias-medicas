@@ -23,6 +23,7 @@ import Formato001Modal from '../../components/formatos/Formato001Modal'
 import NotaEvolucionModal from '../../components/formatos/NotaEvolucionModal'
 import PerfilPacienteModal from '../../components/formatos/PerfilPacienteModal'
 import SelectorNuevoDocumentoModal from '../../components/formatos/SelectorNuevoDocumentoModal'
+import HistorialClinicoPanel from '../../components/historias/HistorialClinicoPanel'
 
 // ── ÍCONOS SVG VECTORIALES CLÍNICOS (CERO EMOJIS) ─────────────
 const IconSearch = () => (
@@ -94,6 +95,7 @@ export default function AdmisionPacientesPage() {
   const [cedulaNuevoIngreso, setCedulaNuevoIngreso] = useState('')
 
   // 1. Modal Formato 052 (Admisión Inicial)
+  const [historialPacienteActivo, setHistorialPacienteActivo] = useState(null)
   const [modal052Abierto, setModal052Abierto] = useState(false)
   const [doc052Activo, setDoc052Activo] = useState(null)
   const [modo052, setModo052] = useState('ver') // 'ver' | 'nuevo'
@@ -196,7 +198,11 @@ export default function AdmisionPacientesPage() {
   // Manejar selección de tipo de documento
   const handleSeleccionarTipoDocumento = (tipo) => {
     setSelectorDocAbierto(false)
-    if (tipo === 'F051') {
+    if (tipo === 'F052') {
+      setDoc052Activo(null)
+      setModo052('nuevo')
+      setModal052Abierto(true)
+    } else if (tipo === 'F051') {
       setDoc051Activo(null)
       setModo051('nuevo')
       setModal051Abierto(true)
@@ -239,6 +245,26 @@ export default function AdmisionPacientesPage() {
   const handleGuardarNuevoF052 = async (datosNuevos) => {
     if (!datosNuevos.cedula || (!datosNuevos.nombre && !datosNuevos.nombres) || (!datosNuevos.apellido && !datosNuevos.apellidos)) {
       alert('Por favor complete los campos obligatorios de identificación: Cédula, Nombres y Apellidos.')
+      return
+    }
+
+    const cedLimpia = String(datosNuevos.cedula).replace(/\D/g, '')
+    const pacienteExistente = pacienteSeleccionado || pacientes.find((p) => String(p.cedula).replace(/\D/g, '') === cedLimpia)
+
+    if (pacienteExistente) {
+      // Anexar como folio oficial F-052
+      const nuevoDocPayload = {
+        tipo: 'F052',
+        codigo_formato: 'FORM. 052 P-1',
+        nombre_formato: 'Historia Clínica P-1 (Admisión Inicial)',
+        servicio: datosNuevos.servicio || pacienteExistente.servicio_actual,
+        resumen: datosNuevos.motivo_admision || datosNuevos.motivos_admision || 'Apertura de expediente formal / F-052',
+        datos: datosNuevos,
+      }
+      const res = await anexarDocumentoPaciente(pacienteExistente.id, nuevoDocPayload)
+      setModal052Abierto(false)
+      await cargarLista()
+      abrirPerfil(res.paciente)
       return
     }
 
@@ -392,17 +418,40 @@ export default function AdmisionPacientesPage() {
           3. BARRA DE HERRAMIENTAS: BÚSQUEDA Y FILTROS
       ══════════════════════════════════════════════════════════ */}
       <section className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
-        <form onSubmit={handleBuscar} className="relative flex-1 w-full">
-          <input
-            type="text"
-            value={terminoBusqueda}
-            onChange={(e) => setTerminoBusqueda(e.target.value)}
-            placeholder="Buscar por cédula (ej: 30047210), nombre completo o N° de historia HPL..."
-            className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-600 focus:outline-none text-xs font-medium text-slate-800 transition-colors shadow-inner"
-          />
-          <div className="absolute left-3.5 top-3 text-slate-400">
-            <IconSearch />
+        <form onSubmit={handleBuscar} className="relative flex-1 w-full flex items-center gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={terminoBusqueda}
+              onChange={(e) => setTerminoBusqueda(e.target.value)}
+              placeholder="Buscar por cédula (ej: 30047210), nombre completo o N° de historia HPL..."
+              className="w-full pl-11 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-blue-600 focus:outline-none text-xs font-medium text-slate-800 transition-colors shadow-inner"
+            />
+            <div className="absolute left-3.5 top-3 text-slate-400">
+              <IconSearch />
+            </div>
+            {terminoBusqueda && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTerminoBusqueda('')
+                  setAlertaNoEncontrado(null)
+                  if (searchParams.get('cedula')) navigate('/admision/pacientes', { replace: true })
+                  listarPacientes({ servicio: filtroServicio, triaje: filtroTriaje, q: '' }).then(setPacientes)
+                }}
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-1"
+                title="Limpiar búsqueda"
+              >
+                ✕
+              </button>
+            )}
           </div>
+          <button
+            type="submit"
+            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
+          >
+            Buscar
+          </button>
         </form>
 
         <div className="flex items-center gap-3 w-full lg:w-auto flex-wrap">
@@ -561,6 +610,16 @@ export default function AdmisionPacientesPage() {
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="inline-flex items-center gap-1.5 justify-end">
                           
+                          {/* Botón 0: Consultar Historia Clínica Unificada */}
+                          <button
+                            onClick={() => setHistorialPacienteActivo(p)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-bold text-xs transition-colors cursor-pointer shadow-xs"
+                            title="Consultar Historial Clínico Unificado y atenciones previas del paciente"
+                          >
+                            <IconClipboardDocument />
+                            <span>Historia</span>
+                          </button>
+
                           {/* Botón 1: Ver Expediente & Folios (Abre PerfilPacienteModal) */}
                           <button
                             onClick={() => abrirPerfil(p)}
@@ -620,11 +679,30 @@ export default function AdmisionPacientesPage() {
       {/* Modal 2: Perfil y Carpeta de Folios del Paciente (Append-Only) */}
       <PerfilPacienteModal
         abierto={perfilAbierto}
-        cerrar={() => setPerfilAbierto(false)}
+        cerrar={() => {
+          setPerfilAbierto(false)
+          if (searchParams.get('cedula')) navigate('/admision/pacientes', { replace: true })
+        }}
         paciente={pacienteSeleccionado}
         onVerDocumento={handleVerDocumentoGenerico}
         onAnexarDocumento={abrirSelectorNuevoDocumento}
+        onConsultarHistoria={(pac) => {
+          setPerfilAbierto(false)
+          setHistorialPacienteActivo(pac)
+        }}
       />
+
+      {/* Modal Panel: Historial Clínico Unificado */}
+      {historialPacienteActivo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-hidden rounded-3xl shadow-2xl animate-in fade-in zoom-in-95">
+            <HistorialClinicoPanel
+              paciente={historialPacienteActivo}
+              onClose={() => setHistorialPacienteActivo(null)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Modal 3: Selector de Tipo de Documento a Anexar */}
       <SelectorNuevoDocumentoModal

@@ -97,6 +97,18 @@ class PacienteUpdateClinicoRequest(BaseModel):
         return v
 
 
+class PacienteUpdateContactoRequest(BaseModel):
+    """
+    Actualización autónoma de datos personales y de contacto por el paciente:
+    Teléfonos, contacto de emergencia, dirección y municipio.
+    """
+    telefono_principal: Optional[str] = None
+    telefono_emergencia: Optional[str] = None
+    nombre_contacto_emergencia: Optional[str] = None
+    direccion: Optional[str] = None
+    municipio: Optional[str] = None
+
+
 class PacienteResponse(BaseModel):
     """Estructura de respuesta de un paciente."""
     id: UUID

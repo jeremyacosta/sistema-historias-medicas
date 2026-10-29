@@ -16,10 +16,10 @@ import AdminLayout           from './layouts/AdminLayout'
 import LoginPage             from './modules/auth/LoginPage'
 // ── Módulo Médico ─────────────────────────────────────────────
 import MedicoDashboard       from './modules/medico/MedicoDashboard'
-import RegistroMorbilidadPage from './modules/medico/RegistroMorbilidadPage'
 // ── Módulo Admisión ───────────────────────────────────────────
 import DashboardPage         from './modules/admision/DashboardPage'
 import AdmisionPacientesPage from './modules/admision/AdmisionPacientesPage'
+import RegistroMorbilidadPage from './modules/medico/RegistroMorbilidadPage'
 // ── Módulo Admin ──────────────────────────────────────────────
 import AdminDashboard        from './modules/admin/AdminDashboard'
 // ── Módulo Paciente ───────────────────────────────────────────
@@ -154,7 +154,6 @@ export default function App() {
                 <Route index element={<Placeholder titulo="Módulo M5 — Récipes Médicos con Código QR" />} />
               </Route>
               <Route path="/medico/notas" element={<Placeholder titulo="Notas de Evolución Clínica" />} />
-              <Route path="/medico/morbilidad" element={<RegistroMorbilidadPage />} />
             </Route>
           </Route>
 

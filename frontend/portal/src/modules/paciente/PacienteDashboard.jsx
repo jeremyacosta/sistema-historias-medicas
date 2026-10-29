@@ -7,8 +7,9 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { obtenerMiPerfilClinico, actualizarMiPerfilClinico } from '../../api/pacientes'
+import { obtenerMiPerfilClinico, actualizarMiPerfilClinico, actualizarMisDatosContacto } from '../../api/pacientes'
 import ModalEditarDatosVitales from '../../components/paciente/ModalEditarDatosVitales'
+import ModalEditarDatosPersonales from '../../components/paciente/ModalEditarDatosPersonales'
 
 export default function PacienteDashboard() {
   const { usuario } = useAuth()
@@ -23,6 +24,7 @@ export default function PacienteDashboard() {
   // Estado del perfil clínico real (Backend M1)
   const [perfilClinico, setPerfilClinico] = useState(null)
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
+  const [modalContactoAbierto, setModalContactoAbierto] = useState(false)
   const [notificacion, setNotificacion] = useState('')
 
   useEffect(() => {
@@ -50,6 +52,20 @@ export default function PacienteDashboard() {
       }))
     }
     setNotificacion('¡Datos vitales actualizados y registrados en auditoría clínica!')
+    setTimeout(() => setNotificacion(''), 4000)
+  }
+
+  const handleGuardarDatosContacto = async (nuevosDatos) => {
+    const data = await actualizarMisDatosContacto(nuevosDatos)
+    if (data) {
+      setPerfilClinico(data)
+    } else {
+      setPerfilClinico((prev) => ({
+        ...prev,
+        ...nuevosDatos,
+      }))
+    }
+    setNotificacion('¡Datos personales y de contacto actualizados correctamente!')
     setTimeout(() => setNotificacion(''), 4000)
   }
 

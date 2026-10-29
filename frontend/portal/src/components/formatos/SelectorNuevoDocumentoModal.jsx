@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  src/components/formatos/SelectorNuevoDocumentoModal.jsx
 //  SELECTOR OFICIAL DE FORMATOS MPPS PARA ANEXAR DOCUMENTOS
 //  Instituto Municipal de Salud Ana Francisca Pérez de León
@@ -14,6 +14,14 @@ export default function SelectorNuevoDocumentoModal({
   if (!abierto || !paciente) return null
 
   const opciones = [
+    {
+      tipo: 'F052',
+      codigo: 'FORM. 052',
+      titulo: 'Historia Clínica P-1 (Admisión Inicial)',
+      descripcion: 'Apertura de expediente formal, motivo de consulta, enfermedad actual, datos de procedencia y filiación médico-legal oficial.',
+      etiqueta: 'Admisión Central & Filiación',
+      colorBadge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    },
     {
       tipo: 'F051',
       codigo: 'FORM. 051',
@@ -73,7 +81,7 @@ export default function SelectorNuevoDocumentoModal({
         {/* Opciones */}
         <div className="p-6 space-y-3 bg-[#f8fafc]">
           <p className="text-xs font-semibold text-slate-600 mb-2">
-            Selecciona el tipo de documento oficial que deseas emitir y sumar al perfil:
+            Selecciona el tipo de documento oficial que deseas emitir y sumar al expediente:
           </p>
 
           {opciones.map((opc) => (
@@ -90,6 +98,9 @@ export default function SelectorNuevoDocumentoModal({
                   <span className="text-sm font-black text-slate-900 group-hover:text-blue-700 transition-colors">
                     {opc.titulo}
                   </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    {opc.etiqueta}
+                  </span>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed pr-4">
                   {opc.descripcion}
@@ -103,10 +114,19 @@ export default function SelectorNuevoDocumentoModal({
               </div>
             </button>
           ))}
+        </div>
 
-          <div className="pt-2 text-[11px] text-slate-500 text-center">
-            * El nuevo documento quedará foliado cronológicamente con firma médica inalterable.
-          </div>
+        {/* Footer */}
+        <div className="px-6 py-4 bg-white border-t border-slate-200 flex items-center justify-between">
+          <p className="text-[11px] text-slate-400">
+            Los documentos emitidos se anexan como folios sucesivos sin sobreescribir el historial.
+          </p>
+          <button
+            onClick={cerrar}
+            className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
         </div>
 
       </div>

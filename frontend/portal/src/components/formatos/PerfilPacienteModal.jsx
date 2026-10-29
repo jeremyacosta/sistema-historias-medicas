@@ -39,6 +39,7 @@ export default function PerfilPacienteModal({
   paciente,
   onVerDocumento,
   onAnexarDocumento,
+  onConsultarHistoria,
 }) {
   if (!abierto || !paciente) return null
 
@@ -76,6 +77,17 @@ export default function PerfilPacienteModal({
           </div>
 
           <div className="flex items-center gap-3">
+            {onConsultarHistoria && (
+              <button
+                onClick={() => onConsultarHistoria(paciente)}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                title="Consultar Historial Clínico Unificado (Atenciones de Emergencia, Hospitalización y Récipes)"
+              >
+                <IconDocumentText />
+                <span>Consultar Historia</span>
+              </button>
+            )}
+
             <button
               onClick={() => onAnexarDocumento(paciente)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all cursor-pointer"

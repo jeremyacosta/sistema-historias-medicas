@@ -2,12 +2,13 @@
 api/v1/pacientes.py — Endpoints: Admisión y Expedientes Clínicos (M1)
 =====================================================================
 Implementa el ciclo completo de Admisión (Formato 052 Parte 1),
-búsqueda clínica y actualización autónoma de datos por el paciente.
+búsqueda clínica, listado general de pacientes y actualización autónoma
+de datos por el paciente.
 Instituto Municipal de Salud Ana Francisca Pérez de León.
 """
 
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text, or_
@@ -20,6 +21,7 @@ from app.models.security import AuditoriaAcceso
 from app.schemas.paciente import (
     PacienteCreateRequest,
     PacienteUpdateClinicoRequest,
+    PacienteUpdateContactoRequest,
     PacienteResponse,
     PacienteCreateResponse
 )
@@ -33,6 +35,36 @@ def _limpiar_ip(ip: Optional[str]) -> str:
     return ip
 
 
+@router.get("/", response_model=dict)
+async def listar_pacientes(
+    q: Optional[str] = Query(None, description="Búsqueda por cédula, nombre, apellido o historia"),
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(require_roles("admin", "admision", "medico")),
+):
+    """
+    Lista todos los pacientes registrados en la base de datos PostgreSQL.
+    Permite filtrar por término de búsqueda (cédula, nombre, etc.).
+    """
+    query = db.query(Paciente).filter(Paciente.activo == True)
+    if q and q.strip():
+        termino = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Paciente.cedula.ilike(termino),
+                Paciente.nombre.ilike(termino),
+                Paciente.apellido.ilike(termino),
+                Paciente.numero_historia.ilike(termino)
+            )
+        )
+    pacientes = query.order_by(Paciente.created_at.desc()).limit(100).all()
+    items = [PacienteResponse.model_validate(p).model_dump(mode="json") for p in pacientes]
+    return {
+        "status": "success",
+        "data": items,
+        "message": f"Se listaron {len(items)} pacientes activos."
+    }
+
+
 @router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def registrar_paciente(
     payload: PacienteCreateRequest,
@@ -43,13 +75,6 @@ async def registrar_paciente(
     """
     Apertura oficial de expediente clínico (Formato 052 Parte 1).
     Solo para personal de Admisión y Administradores.
-    
-    1. Verifica que la cédula no esté previamente registrada.
-    2. Genera el correlativo único HPL-YYYY-NNNNN mediante 'historia_seq'.
-    3. Registra el paciente en la base de datos.
-    4. Crea automáticamente la cuenta de usuario portal con rol 'paciente'
-       y contraseña provisional (cedula + año actual).
-    5. Asienta el evento inmutable en 'auditoria_accesos'.
     """
     # 1. Verificar existencia
     paciente_existente = db.query(Paciente).filter(Paciente.cedula == payload.cedula).first()
@@ -65,7 +90,6 @@ async def registrar_paciente(
         anio = datetime.now().year
         numero_historia = f"HPL-{anio}-{str(seq_res).zfill(5)}"
     except Exception as e:
-        # Fallback en caso de que la secuencia requiera inicialización
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -280,4 +304,83 @@ async def actualizar_datos_clinicos_propios(
         "status": "success",
         "data": PacienteResponse.model_validate(paciente).model_dump(mode="json"),
         "message": "Datos clínicos actualizados correctamente en su expediente."
+    }
+
+
+@router.patch("/me/contacto", response_model=dict)
+async def actualizar_datos_contacto_propios(
+    payload: PacienteUpdateContactoRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Usuario = Depends(get_current_user),
+):
+    """
+    Permite al paciente actualizar sus números de teléfono, dirección, municipio
+    y contacto de emergencia de forma autónoma.
+    """
+    paciente = db.query(Paciente).filter(
+        Paciente.cedula == current_user.cedula,
+        Paciente.activo == True
+    ).first()
+
+    if not paciente:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No existe expediente clínico asociado a este usuario."
+        )
+
+    cambios = []
+    if payload.telefono_principal is not None and payload.telefono_principal != paciente.telefono_principal:
+        paciente.telefono_principal = payload.telefono_principal.strip()
+        cambios.append("teléfono principal")
+
+    if payload.telefono_emergencia is not None and payload.telefono_emergencia != paciente.telefono_emergencia:
+        paciente.telefono_emergencia = payload.telefono_emergencia.strip()
+        cambios.append("teléfono de emergencia")
+
+    if payload.nombre_contacto_emergencia is not None and payload.nombre_contacto_emergencia != paciente.nombre_contacto_emergencia:
+        paciente.nombre_contacto_emergencia = payload.nombre_contacto_emergencia.strip()
+        cambios.append("contacto de emergencia")
+
+    if payload.direccion is not None and payload.direccion != paciente.direccion:
+        paciente.direccion = payload.direccion.strip()
+        cambios.append("dirección")
+
+    if payload.municipio is not None and payload.municipio != paciente.municipio:
+        paciente.municipio = payload.municipio.strip()
+        cambios.append("municipio")
+
+    if not cambios:
+        return {
+            "status": "success",
+            "data": PacienteResponse.model_validate(paciente).model_dump(mode="json"),
+            "message": "No se realizaron modificaciones."
+        }
+
+    # También actualizar el teléfono en la tabla de usuarios si cambió el principal
+    if payload.telefono_principal is not None:
+        current_user.telefono = payload.telefono_principal.strip()
+
+    client_ip = _limpiar_ip(request.client.host if request.client else None)
+    auditoria = AuditoriaAcceso(
+        usuario_id=current_user.id,
+        usuario_cedula=current_user.cedula,
+        usuario_rol=current_user.rol.nombre if current_user.rol else "paciente",
+        accion="AUTOGESTION_DATOS_CONTACTO",
+        descripcion=f"Paciente actualizó datos personales: {', '.join(cambios)}",
+        entidad="pacientes",
+        entidad_id=str(paciente.id),
+        paciente_cedula=paciente.cedula,
+        ip_origen=client_ip,
+        modulo="BILLETERA_PACIENTE",
+        exitoso=True
+    )
+    db.add(auditoria)
+    db.commit()
+    db.refresh(paciente)
+
+    return {
+        "status": "success",
+        "data": PacienteResponse.model_validate(paciente).model_dump(mode="json"),
+        "message": "Datos de contacto y domicilio actualizados correctamente."
     }
