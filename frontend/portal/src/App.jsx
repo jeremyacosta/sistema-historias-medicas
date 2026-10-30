@@ -16,12 +16,16 @@ import AdminLayout           from './layouts/AdminLayout'
 import LoginPage             from './modules/auth/LoginPage'
 // ── Módulo Médico ─────────────────────────────────────────────
 import MedicoDashboard       from './modules/medico/MedicoDashboard'
+import HistoriasPage         from './modules/medico/HistoriasPage'
+import NotasEvolucionPage    from './modules/medico/NotasEvolucionPage'
 // ── Módulo Admisión ───────────────────────────────────────────
 import DashboardPage         from './modules/admision/DashboardPage'
 import AdmisionPacientesPage from './modules/admision/AdmisionPacientesPage'
 import RegistroMorbilidadPage from './modules/medico/RegistroMorbilidadPage'
 // ── Módulo Admin ──────────────────────────────────────────────
 import AdminDashboard        from './modules/admin/AdminDashboard'
+import GestionUsuariosPage   from './modules/admin/GestionUsuariosPage'
+import AuditoriaPage         from './modules/admin/AuditoriaPage'
 // ── Módulo Paciente ───────────────────────────────────────────
 import PacienteDashboard     from './modules/paciente/PacienteDashboard'
 
@@ -145,7 +149,7 @@ export default function App() {
                 path="/medico/historias"
                 element={<ProtectedRoute permiso="historia:leer" />}
               >
-                <Route index element={<Placeholder titulo="Módulo M2 — Historias Clínicas" />} />
+                <Route index element={<HistoriasPage />} />
               </Route>
               <Route
                 path="/medico/recetas"
@@ -153,7 +157,7 @@ export default function App() {
               >
                 <Route index element={<Placeholder titulo="Módulo M5 — Récipes Médicos con Código QR" />} />
               </Route>
-              <Route path="/medico/notas" element={<Placeholder titulo="Notas de Evolución Clínica" />} />
+              <Route path="/medico/notas" element={<NotasEvolucionPage />} />
             </Route>
           </Route>
 
@@ -186,8 +190,8 @@ export default function App() {
           <Route element={<ProtectedRoute rol="admin" />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/usuarios"  element={<Placeholder titulo="Gestión de Usuarios y Roles del Sistema" />} />
-              <Route path="/admin/auditoria" element={<Placeholder titulo="Registro de Auditoría Inmutable del Sistema" />} />
+              <Route path="/admin/usuarios"  element={<GestionUsuariosPage />} />
+              <Route path="/admin/auditoria" element={<AuditoriaPage />} />
             </Route>
           </Route>
 

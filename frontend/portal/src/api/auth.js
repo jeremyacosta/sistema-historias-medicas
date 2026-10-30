@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 //  src/api/auth.js — Servicios de Autenticación
 //  Conecta con los endpoints de /api/v1/auth/
 //  Incluye fallback offline/demo para pruebas locales inmediatas
@@ -14,7 +14,7 @@ const USUARIOS_DEMO = {
       nombre: 'Héctor',
       apellido: 'Morales',
       nombre_completo: 'Dr. Héctor Morales',
-      email: 'hmorales@hospitalbaquero.gob.ve',
+      email: 'hmorales@perezdeleon.gob.ve',
       rol: 'medico',
       debe_cambiar_pass: false,
     },
@@ -36,7 +36,7 @@ const USUARIOS_DEMO = {
       nombre: 'María',
       apellido: 'González',
       nombre_completo: 'Adm. María González',
-      email: 'mgonzalez@hospitalbaquero.gob.ve',
+      email: 'mgonzalez@perezdeleon.gob.ve',
       rol: 'admision',
       debe_cambiar_pass: false,
     },
@@ -54,7 +54,7 @@ const USUARIOS_DEMO = {
       nombre: 'Carlos',
       apellido: 'Medina',
       nombre_completo: 'Carlos Medina',
-      email: 'admin@hospitalbaquero.gob.ve',
+      email: 'admin@perezdeleon.gob.ve',
       rol: 'admin',
       debe_cambiar_pass: false,
     },
@@ -67,7 +67,7 @@ const USUARIOS_DEMO = {
       nombre: 'Jeremy',
       apellido: 'Acosta',
       nombre_completo: 'Jeremy Acosta',
-      email: 'jacosta@paciente.baquero.gob.ve',
+      email: 'jacosta@paciente.perezdeleon.gob.ve',
       rol: 'paciente',
       debe_cambiar_pass: false,
       telefono: '0412-3334455',
@@ -88,7 +88,7 @@ const USUARIOS_DEMO = {
       nombre: 'Eli',
       apellido: 'Araujo',
       nombre_completo: 'Eli Araujo',
-      email: 'earaujo@paciente.baquero.gob.ve',
+      email: 'earaujo@paciente.perezdeleon.gob.ve',
       rol: 'paciente',
       debe_cambiar_pass: false,
       telefono: '0414-9988776',
@@ -206,8 +206,10 @@ export const getMe = async () => {
     }
     const token = localStorage.getItem('access_token')
     if (token?.startsWith('demo-token-')) {
-      const isPaciente = token.includes('paciente')
-      return isPaciente ? USUARIOS_DEMO['30047210'] : USUARIOS_DEMO['18765432']
+      if (token.includes('paciente')) return USUARIOS_DEMO['30047210']
+      if (token.includes('admision')) return USUARIOS_DEMO['25333444']
+      if (token.includes('admin'))    return USUARIOS_DEMO['12345678']
+      return USUARIOS_DEMO['18765432']
     }
     throw err
   }

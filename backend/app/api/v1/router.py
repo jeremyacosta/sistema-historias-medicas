@@ -6,7 +6,7 @@ Agregar aquí cada nuevo módulo (M1-M7) a medida que se construya.
 """
 
 from fastapi import APIRouter
-from app.api.v1 import auth, pacientes, historias, morbilidad
+from app.api.v1 import auth, pacientes, historias, morbilidad, admin
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -15,6 +15,7 @@ api_router.include_router(auth.router)
 api_router.include_router(pacientes.router)
 api_router.include_router(historias.router)
 api_router.include_router(morbilidad.router)
+api_router.include_router(admin.router)
 
 # ── Próximos módulos (descomentar al implementar) ─────────────
 # from app.api.v1 import admision

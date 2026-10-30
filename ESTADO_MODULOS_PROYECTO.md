@@ -13,17 +13,17 @@ El sistema hospitalario está concebido sobre una arquitectura de **4 Espacios d
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                   MAPA DE AVANCE GLOBAL: ~70% COMPLETADO               │
+│                   MAPA DE AVANCE GLOBAL: ~85% COMPLETADO               │
 ├───────┬──────────────────────────────────────────┬───────────┬─────────┤
 │ MÓD.  │ NOMBRE Y ALCANCE CLÍNICO                 │ ESTADO    │ AVANCE  │
 ├───────┼──────────────────────────────────────────┼───────────┼─────────┤
 │ M1    │ Admisión Central & Triaje Manchester     │ Operativo │   95%   │
-│ M2    │ Historias Clínicas & Emergencia 051      │ Operativo │   75%   │
+│ M2    │ Historias Clínicas & Emergencia 051      │ Operativo │  100%   │
 │ M3    │ Morbilidad Diaria de Triaje (EPI-12)     │ Operativo │   90%   │
-│ M4    │ Consola Admin & Soporte de Usuarios      │ Pendiente │   35%   │
-│ M5    │ Récipes Médicos Digitales & Código QR    │ Parcial   │   60%   │
+│ M4    │ Consola Admin & Soporte de Usuarios      │ Operativo │  100%   │
+│ M5    │ Récipes Médicos Digitales (Formato 001)  │ Parcial   │   60%   │
 │ M6    │ Teleasistencia Hospitalaria 24H          │ Pendiente │   15%   │
-│ M7    │ Auditoría Inmutable Forense              │ Operativo │   70%   │
+│ M7    │ Auditoría Inmutable Forense              │ Operativo │   95%   │
 │ BDP   │ Billetera Digital del Paciente (Portal)  │ Operativo │   95%   │
 └───────┴──────────────────────────────────────────┴───────────┴─────────┘
 ```
@@ -44,15 +44,14 @@ El sistema hospitalario está concebido sobre una arquitectura de **4 Espacios d
 
 ---
 
-### Módulo M2 — Historias Médicas & Emergencia F-051 (75% Completado)
+### Módulo M2 — Historias Médicas & Emergencia F-051 (100% Completado)
 * **Lo que está listo y probado:**
   - Tabla relacional `historias_emergencia_051` con signos vitales, severidad del caso, antecedentes y CIE-10.
   - Endpoints `POST /api/v1/historias/emergencia-051` y `GET /api/v1/historias/paciente/{cedula}`.
   - Panel de Historial Clínico Unificado flotante en modal superpuesto (*Dialog Overlay*) con pestañas de atenciones de emergencia, récipes y curva de signos vitales.
   - Modales de Formato 051 (Trauma Shock / Emergencia 48h) y Notas de Evolución Oficiales.
-* **Lo que falta para el 100%:**
-  - Implementar la vista dedicada `/medico/historias` (actualmente con pantalla de *Placeholder*) para que el médico pueda listar y buscar el archivo general de historias clínicas sin estar forzosamente en el triage de guardia.
-  - Implementar la vista `/medico/notas` para el listado de evoluciones médicas de hospitalización.
+  - Vista dedicada `/medico/historias` (`HistoriasPage.jsx`) con búsqueda universal de expedientes por cédula o número correlativo `HPL-2026-NNNNN`, filtros por triaje Manchester y acceso directo al historial unificado.
+  - Vista dedicada `/medico/notas` (`NotasEvolucionPage.jsx`) con listado cronológico de notas de evolución en formato SOAP, selector de paciente y visor inmutable para impresión oficial.
 
 ---
 
@@ -66,18 +65,18 @@ El sistema hospitalario está concebido sobre una arquitectura de **4 Espacios d
 
 ---
 
-### Módulo M4 — Consola Administrativa, Usuarios & Soporte (35% Completado) — [PRIORIDAD INMEDIATA]
-* **Lo que está listo:**
+### Módulo M4 — Consola Administrativa, Usuarios & Soporte (100% Completado)
+* **Lo que está listo y probado:**
   - Esquema de base de datos con tablas `usuarios`, `roles`, `sesiones_activas` y contraseñas hasheadas con Bcrypt.
   - Dashboard de dirección con KPIs y métricas del sistema (`AdminDashboard.jsx`).
-* **Lo que falta por construir (Faltante crítico):**
-  - Backend `sistema/backend/app/api/v1/admin.py`:
+  - Backend `backend/app/api/v1/admin.py` con 5 endpoints administrativos:
     * `GET /api/v1/admin/usuarios` (listar todo el personal con estado activo/inactivo).
     * `POST /api/v1/admin/usuarios` (dar de alta a médicos, enfermeros y secretarios).
     * `PATCH /api/v1/admin/usuarios/{id}/estado` (activar, suspender o bloquear acceso ante incidentes).
     * `POST /api/v1/admin/usuarios/{id}/reset-password` (blanqueo o reseteo de claves de soporte técnico).
     * `GET /api/v1/admin/telemetria` (estado de conexión PostgreSQL, sesiones concurrentes y uptime).
-  - Frontend: Construir `GestionUsuariosPage.jsx` para reemplazar el placeholder actual de `/admin/usuarios`.
+  - Frontend: `GestionUsuariosPage.jsx` en `/admin/usuarios` con tabla interactiva, filtros por rol, buscador instantáneo, acciones rápidas y modal de alta.
+  - Frontend: `AuditoriaPage.jsx` en `/admin/auditoria` (M7) con bitácora forense de solo lectura y filtros por cédula, fecha, IP y acción.
 
 ---
 
