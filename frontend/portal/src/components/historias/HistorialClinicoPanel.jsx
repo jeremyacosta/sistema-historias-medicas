@@ -45,6 +45,16 @@ export default function HistorialClinicoPanel({ paciente, onClose }) {
   const [historiasBackend, setHistoriasBackend] = useState([])
 
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && onClose) {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  useEffect(() => {
     async function cargarHistorial() {
       if (!paciente?.cedula) return
       try {
@@ -127,10 +137,10 @@ export default function HistorialClinicoPanel({ paciente, onClose }) {
   ]
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden mt-6 animate-in fade-in slide-in-from-top-4 duration-300">
+    <div className="bg-white rounded-3xl border border-slate-300 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
       
       {/* ── HEADER DEL PANEL ─────────────────────────────────── */}
-      <div className="bg-[#091528] text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10">
+      <div className="bg-[#091528] text-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 flex-shrink-0">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
@@ -182,7 +192,7 @@ export default function HistorialClinicoPanel({ paciente, onClose }) {
       )}
 
       {/* ── BARRA DE PESTAÑAS DEL HISTORIAL ───────────────────── */}
-      <div className="border-b border-slate-200 px-6 bg-slate-50/70 flex gap-2 pt-2">
+      <div className="border-b border-slate-200 px-6 bg-slate-50/70 flex gap-2 pt-2 flex-shrink-0">
         <button
           onClick={() => setTabActiva('emergencias')}
           className={`flex items-center gap-2 px-4 py-2.5 font-bold text-xs border-b-2 transition-all cursor-pointer ${
@@ -221,7 +231,7 @@ export default function HistorialClinicoPanel({ paciente, onClose }) {
       </div>
 
       {/* ── CONTENIDO DE LAS PESTAÑAS ─────────────────────────── */}
-      <div className="p-6">
+      <div className="p-6 flex-1 overflow-y-auto">
         
         {/* Pestaña 1: Emergencias 051 */}
         {tabActiva === 'emergencias' && (

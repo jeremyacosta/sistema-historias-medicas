@@ -352,12 +352,21 @@ export default function MedicoDashboard() {
         </div>
       </div>
 
-      {/* Panel de Historial Clínico Unificado del Médico */}
+      {/* Modal Flotante Superpuesto: Historial Clínico Unificado */}
       {pacienteActivo && (
-        <HistorialClinicoPanel
-          paciente={pacienteActivo}
-          onClose={() => setPacienteActivo(null)}
-        />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPacienteActivo(null)
+          }}
+        >
+          <div className="w-full max-w-5xl">
+            <HistorialClinicoPanel
+              paciente={pacienteActivo}
+              onClose={() => setPacienteActivo(null)}
+            />
+          </div>
+        </div>
       )}
 
     </div>

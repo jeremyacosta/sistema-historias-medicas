@@ -301,10 +301,6 @@ export default function BaseHospitalShell({
                 <h1 className="text-sm font-black text-slate-900 tracking-tight">
                   Instituto Municipal de Salud Ana Francisca Pérez de León
                 </h1>
-                <span className="text-xs text-slate-400 hidden sm:inline">·</span>
-                <span className="text-xs font-semibold text-slate-500 hidden sm:inline italic">
-                  "Ana Francisca Pérez de León"
-                </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium hidden sm:block mt-0.5">
                 Ministerio del Poder Popular para la Salud · Distrito Sanitario N° 7 · Red Pública
