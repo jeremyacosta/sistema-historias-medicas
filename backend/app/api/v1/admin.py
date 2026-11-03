@@ -1,38 +1,38 @@
 """
-api/v1/admin.py — Módulo M4: Gestión de Personal Hospitalario
-==============================================================
-Endpoints administrativos para manejo de personal, estado de cuentas
-y telemetría del sistema.
-
-Rutas registradas:
-  GET    /api/v1/admin/usuarios           — Listar personal del sistema
-  POST   /api/v1/admin/usuarios           — Alta de nuevo usuario
-  PATCH  /api/v1/admin/usuarios/{id}/estado — Cambiar estado activo/suspendido/bloqueado
-  POST   /api/v1/admin/usuarios/{id}/reset-password — Resetear contraseña
-  GET    /api/v1/admin/telemetria         — Estado PostgreSQL y métricas del servidor
+api/v1/admin.py — Módulo M4: Gestión de Personal Hospitalario y Soporte
+========================================================================
+Endpoints administrativos para manejo de personal, estado de cuentas,
+auditoría y telemetría del sistema.
+Instituto Municipal de Salud Ana Francisca Pérez de León.
 """
 
-from datetime import datetime
-from typing import Optional, List
+from datetime import datetime, timezone
+from typing import Optional, List, Union
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from app.db.session import get_db
-from app.api.v1.auth import get_current_user, require_permission
+from app.core.security import get_current_user, require_roles, hash_password
+from app.models.usuario import Usuario, Rol
+from app.models.security import AuditoriaAcceso
 
 router = APIRouter(prefix="/admin", tags=["Administración M4"])
+
 
 # ── Schemas Pydantic ──────────────────────────────────────────
 
 class UsuarioOut(BaseModel):
-    id: int
+    id: Union[UUID, str]
     nombre: str
     apellido: str
     cedula: str
     rol: str
     correo: Optional[str] = None
+    telefono: Optional[str] = None
     estado: str  # activo | suspendido | bloqueado
     creado_en: Optional[datetime] = None
     ultimo_acceso: Optional[datetime] = None
@@ -65,68 +65,83 @@ class TelemetriaOut(BaseModel):
     timestamp: datetime
 
 
+def _serializar_usuario(u: Usuario) -> dict:
+    rol_nombre = u.rol.nombre if u.rol else "desconocido"
+    estado = "activo" if u.activo else "suspendido"
+    return {
+        "id": str(u.id),
+        "nombre": u.nombre,
+        "apellido": u.apellido,
+        "cedula": u.cedula,
+        "rol": rol_nombre,
+        "correo": u.email,
+        "telefono": u.telefono,
+        "estado": estado,
+        "creado_en": u.creado_en,
+        "ultimo_acceso": u.ultimo_acceso,
+    }
+
+
 # ── Endpoints ─────────────────────────────────────────────────
 
 @router.get(
     "/usuarios",
     response_model=List[UsuarioOut],
     summary="Listar personal hospitalario registrado",
-    description="Devuelve la lista completa de usuarios del sistema con su estado y último acceso.",
 )
 def listar_usuarios(
     rol: Optional[str] = None,
     estado: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_permission("admin:total")),
+    current_user: Usuario = Depends(require_roles("admin")),
 ):
-    """
-    Parámetros de filtro opcionales:
-    - rol: medico | admision | admin | enfermeria
-    - estado: activo | suspendido | bloqueado
-    """
-    from app.db.models import Usuario  # import local para evitar circularidades
-
     query = db.query(Usuario)
     if rol:
-        query = query.filter(Usuario.rol == rol)
+        query = query.join(Rol).filter(Rol.nombre == rol)
     if estado:
-        query = query.filter(Usuario.estado == estado)
+        if estado == "activo":
+            query = query.filter(Usuario.activo == True)
+        elif estado in ("suspendido", "bloqueado"):
+            query = query.filter(Usuario.activo == False)
 
-    return query.order_by(Usuario.nombre).all()
+    usuarios = query.order_by(Usuario.nombre).all()
+    return [_serializar_usuario(u) for u in usuarios]
 
 
 @router.post(
     "/usuarios",
     status_code=status.HTTP_201_CREATED,
     summary="Dar de alta un nuevo miembro del personal",
-    description="Crea un usuario con contraseña temporal Test1234! que debe ser cambiada en el primer inicio de sesión.",
 )
 def crear_usuario(
     datos: UsuarioCreate,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_permission("admin:total")),
+    current_user: Usuario = Depends(require_roles("admin")),
 ):
-    from app.db.models import Usuario
-    from app.core.security import hash_password
-
-    # Verificar que la cédula no esté duplicada
-    existente = db.query(Usuario).filter(Usuario.cedula == datos.cedula).first()
+    existente = db.query(Usuario).filter(Usuario.cedula == datos.cedula.strip()).first()
     if existente:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Ya existe un usuario registrado con la cédula {datos.cedula}.",
         )
 
+    rol_obj = db.query(Rol).filter(Rol.nombre == datos.rol.lower().strip()).first()
+    if not rol_obj:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El rol '{datos.rol}' no existe en el sistema.",
+        )
+
     usuario = Usuario(
-        nombre=datos.nombre,
-        apellido=datos.apellido,
-        cedula=datos.cedula,
-        rol=datos.rol,
-        correo=datos.correo,
-        hashed_password=hash_password("Test1234!"),
-        estado="activo",
+        nombre=datos.nombre.strip(),
+        apellido=datos.apellido.strip(),
+        cedula=datos.cedula.strip(),
+        rol_id=rol_obj.id,
+        email=datos.correo.strip() if datos.correo else None,
+        telefono=datos.telefono.strip() if datos.telefono else None,
+        password_hash=hash_password("Test1234!"),
+        activo=True,
         debe_cambiar_pass=True,
-        creado_en=datetime.utcnow(),
     )
     db.add(usuario)
     db.commit()
@@ -134,9 +149,9 @@ def crear_usuario(
 
     return {
         "mensaje": f"Usuario {datos.nombre} {datos.apellido} registrado correctamente.",
-        "id": usuario.id,
+        "id": str(usuario.id),
         "cedula": usuario.cedula,
-        "rol": usuario.rol,
+        "rol": rol_obj.nombre,
         "estado": "activo",
     }
 
@@ -144,16 +159,13 @@ def crear_usuario(
 @router.patch(
     "/usuarios/{usuario_id}/estado",
     summary="Cambiar estado de acceso de un usuario",
-    description="Permite activar, suspender o bloquear el acceso de un miembro del personal.",
 )
 def cambiar_estado(
-    usuario_id: int,
+    usuario_id: str,
     datos: EstadoUpdate,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_permission("admin:total")),
+    current_user: Usuario = Depends(require_roles("admin")),
 ):
-    from app.db.models import Usuario
-
     estados_validos = {"activo", "suspendido", "bloqueado"}
     if datos.estado not in estados_validos:
         raise HTTPException(
@@ -161,24 +173,28 @@ def cambiar_estado(
             detail=f"Estado inválido. Opciones: {', '.join(estados_validos)}.",
         )
 
-    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    try:
+        uid = UUID(usuario_id)
+        usuario = db.query(Usuario).filter(Usuario.id == uid).first()
+    except ValueError:
+        usuario = db.query(Usuario).filter(Usuario.cedula == usuario_id).first()
+
     if not usuario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
 
-    # Proteger la cuenta admin principal
     if usuario.cedula == "12345678" and datos.estado != "activo":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="No se puede suspender ni bloquear la cuenta de administración principal del sistema.",
         )
 
-    estado_anterior = usuario.estado
-    usuario.estado = datos.estado
+    estado_anterior = "activo" if usuario.activo else "suspendido"
+    usuario.activo = (datos.estado == "activo")
     db.commit()
 
     return {
         "mensaje": f"Estado del usuario actualizado: {estado_anterior} → {datos.estado}.",
-        "id": usuario_id,
+        "id": str(usuario.id),
         "estado_anterior": estado_anterior,
         "estado_nuevo": datos.estado,
     }
@@ -187,27 +203,28 @@ def cambiar_estado(
 @router.post(
     "/usuarios/{usuario_id}/reset-password",
     summary="Blanquear contraseña de un usuario",
-    description="Resetea la contraseña a Test1234! y marca la cuenta para forzar cambio en el próximo inicio de sesión.",
 )
 def reset_password(
-    usuario_id: int,
+    usuario_id: str,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_permission("admin:total")),
+    current_user: Usuario = Depends(require_roles("admin")),
 ):
-    from app.db.models import Usuario
-    from app.core.security import hash_password
+    try:
+        uid = UUID(usuario_id)
+        usuario = db.query(Usuario).filter(Usuario.id == uid).first()
+    except ValueError:
+        usuario = db.query(Usuario).filter(Usuario.cedula == usuario_id).first()
 
-    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
 
-    usuario.hashed_password = hash_password("Test1234!")
+    usuario.password_hash = hash_password("Test1234!")
     usuario.debe_cambiar_pass = True
     db.commit()
 
     return {
-        "mensaje": f"Contraseña de {usuario.nombre} {usuario.apellido} reseteada a temporal.",
-        "id": usuario_id,
+        "mensaje": f"Contraseña de {usuario.nombre} {usuario.apellido} reseteada a temporal (Test1234!).",
+        "id": str(usuario.id),
         "debe_cambiar_pass": True,
     }
 
@@ -216,34 +233,30 @@ def reset_password(
     "/telemetria",
     response_model=TelemetriaOut,
     summary="Estado del sistema y métricas de PostgreSQL",
-    description="Devuelve información de salud del servidor: versión BD, sesiones activas y conteo de usuarios.",
 )
 def telemetria(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_permission("admin:total")),
+    current_user: Usuario = Depends(require_roles("admin")),
 ):
-    from app.db.models import Usuario
     import platform
 
-    # Intentar consultar versión de PostgreSQL
     try:
-        result = db.execute("SELECT version()").fetchone()
-        bd_version = result[0].split(",")[0] if result else "Desconocida"
+        result = db.execute(text("SELECT version()")).fetchone()
+        bd_version = result[0].split(",")[0] if result else "PostgreSQL 16"
         bd_estado = "operativa"
     except Exception:
         bd_version = None
         bd_estado = "error_conexion"
 
-    # Sesiones activas en PostgreSQL
     try:
         sesiones = db.execute(
-            "SELECT count(*) FROM pg_stat_activity WHERE state = 'active'"
-        ).scalar()
+            text("SELECT count(*) FROM sesiones_activas WHERE revocado = false")
+        ).scalar() or 0
     except Exception:
         sesiones = 0
 
-    total    = db.query(Usuario).count()
-    activos  = db.query(Usuario).filter(Usuario.estado == "activo").count()
+    total = db.query(Usuario).count()
+    activos = db.query(Usuario).filter(Usuario.activo == True).count()
 
     return TelemetriaOut(
         bd_estado=bd_estado,
@@ -252,5 +265,5 @@ def telemetria(
         usuarios_totales=total,
         usuarios_activos=activos,
         uptime_servidor=platform.node(),
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
