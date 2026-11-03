@@ -7,6 +7,7 @@
 // ============================================================
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import HistorialClinicoPanel from '../../components/historias/HistorialClinicoPanel'
@@ -353,20 +354,22 @@ export default function MedicoDashboard() {
       </div>
 
       {/* Modal Flotante Superpuesto: Historial Clínico Unificado */}
-      {pacienteActivo && (
+      {pacienteActivo && createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999] flex items-start justify-center pt-6 pb-6 px-3 sm:px-6 bg-slate-950/75 backdrop-blur-sm overflow-y-auto"
+          style={{ animation: 'fadeIn 0.18s ease' }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setPacienteActivo(null)
           }}
         >
-          <div className="w-full max-w-5xl">
+          <div className="w-full max-w-5xl my-auto">
             <HistorialClinicoPanel
               paciente={pacienteActivo}
               onClose={() => setPacienteActivo(null)}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
