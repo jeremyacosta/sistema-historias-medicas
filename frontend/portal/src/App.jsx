@@ -18,6 +18,7 @@ import LoginPage             from './modules/auth/LoginPage'
 import MedicoDashboard       from './modules/medico/MedicoDashboard'
 import HistoriasPage         from './modules/medico/HistoriasPage'
 import NotasEvolucionPage    from './modules/medico/NotasEvolucionPage'
+import RecetasPage           from './modules/medico/RecetasPage'
 // ── Módulo Admisión ───────────────────────────────────────────
 import DashboardPage         from './modules/admision/DashboardPage'
 import AdmisionPacientesPage from './modules/admision/AdmisionPacientesPage'
@@ -155,7 +156,7 @@ export default function App() {
                 path="/medico/recetas"
                 element={<ProtectedRoute permiso="receta:emitir" />}
               >
-                <Route index element={<Placeholder titulo="Módulo M5 — Récipes Médicos con Código QR" />} />
+                <Route index element={<RecetasPage />} />
               </Route>
               <Route path="/medico/notas" element={<NotasEvolucionPage />} />
             </Route>

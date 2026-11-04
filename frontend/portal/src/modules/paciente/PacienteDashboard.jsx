@@ -6,8 +6,10 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { obtenerMiPerfilClinico, actualizarMiPerfilClinico, actualizarMisDatosContacto } from '../../api/pacientes'
+import { obtenerMiPerfilClinico, actualizarMiPerfilClinico, actualizarMisDatosContacto, getStoredPacientes } from '../../api/pacientes'
+import Formato001Modal from '../../components/formatos/Formato001Modal'
 import ModalEditarDatosVitales from '../../components/paciente/ModalEditarDatosVitales'
 import ModalEditarDatosPersonales from '../../components/paciente/ModalEditarDatosPersonales'
 
@@ -26,6 +28,9 @@ export default function PacienteDashboard() {
   const [modalEditarAbierto, setModalEditarAbierto] = useState(false)
   const [modalContactoAbierto, setModalContactoAbierto] = useState(false)
   const [notificacion, setNotificacion] = useState('')
+  const [recetasPaciente, setRecetasPaciente] = useState([])
+  const [modalRecipeAbierto, setModalRecipeAbierto] = useState(false)
+  const [recipeActivo, setRecipeActivo] = useState(null)
 
   useEffect(() => {
     async function cargarPerfil() {
@@ -72,7 +77,27 @@ export default function PacienteDashboard() {
   const datosPaciente = {
     historia: perfilClinico?.numero_historia || (esJeremy ? 'HPL-2024-00001' : 'HPL-2024-00002'),
     cedula: perfilClinico?.cedula || (esJeremy ? '30.047.210' : '29.921.654'),
-    nombre: perfilClinico ? `${perfilClinico.nombre} ${perfilClinico.apellido}` : (esJeremy ? 'Jeremy Acosta' : 'Eli Araujo'),
+    nombre: perfilClinico ? `${perfilClinico.nombre}
+
+  // Cargar prescripciones oficiales foliadas del paciente (FORM. 001)
+  useEffect(() => {
+    try {
+      const list = getStoredPacientes()
+      const cedLimpia = String(usuario?.cedula || '').replace(/\D/g, '')
+      const pac = list.find((p) => {
+        const pCed = String(p.cedula || '').replace(/\D/g, '')
+        return (cedLimpia && pCed === cedLimpia) || (p.numero_historia === datosPaciente.historia)
+      }) || list[0]
+
+      if (pac && Array.isArray(pac.documentos)) {
+        const f001Docs = pac.documentos.filter((d) => d.tipo === 'F001')
+        setRecetasPaciente(f001Docs)
+      }
+    } catch (e) {
+      console.warn('Error al cargar recetas del paciente:', e)
+    }
+  }, [usuario?.cedula, perfilClinico])
+ ${perfilClinico.apellido}` : (esJeremy ? 'Jeremy Acosta' : 'Eli Araujo'),
     fechaNacimiento: perfilClinico?.fecha_nacimiento || (esJeremy ? '15 de Mayo de 2000 (24 años)' : '22 de Marzo de 2001 (23 años)'),
     tipoSangre: perfilClinico?.tipo_sangre || (esJeremy ? 'O+' : 'A+'),
     alergias: perfilClinico?.alergias_conocidas || (esJeremy ? 'Alergia severa a Penicilina (PNC)' : 'Ninguna conocida'),
@@ -282,57 +307,85 @@ export default function PacienteDashboard() {
         </div>
       </section>
 
-      {/* ── RÉCIPES MÉDICOS ACTIVOS (PRESCRIPCIÓN DIGITAL) ─────── */}
+      {/* ── RÉCIPES MÉDICOS OFICIALES FOLIADOS (FORM. 001 MPPS) ─────── */}
       <section className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-black text-slate-900">
-                Prescripciones Médicas Activas
+                Récipes Médicos Oficiales (Formato 001)
               </h2>
               <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
             </div>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Récipes firmados por médicos del Hospital Dr. Ana Francisca Pérez de León
+              Prescripciones oficiales foliadas por el Instituto Municipal de Salud Ana Francisca Pérez de León
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
-            1 Tratamiento en Curso
+            {recetasPaciente.length} {recetasPaciente.length === 1 ? 'Récipe Registrado' : 'Récipes Registrados'}
           </span>
         </div>
 
-        {/* Tarjeta de récipe estilo prescripción oficial */}
-        <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50/40 via-white to-indigo-50/30 p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-blue-100">
-            <div>
-              <span className="font-mono font-black text-blue-700 text-xs bg-blue-100/80 px-2.5 py-1 rounded-lg border border-blue-200">
-                REC-2026-00412
-              </span>
-              <h3 className="text-sm font-black text-slate-900 mt-2">
-                Amoxicilina + Ácido Clavulánico 875/125 mg
-              </h3>
-              <p className="text-xs text-slate-600 font-medium mt-0.5">
-                Tomar 1 comprimido vía oral cada 12 horas por 7 días continuos.
-              </p>
-            </div>
-
-            <div className="sm:text-right text-xs">
-              <p className="font-black text-slate-900">Dr. Hildren Morales</p>
-              <p className="text-[11px] text-slate-500 font-mono">MPPS N° 84.192 · Medicina General</p>
-              <span className="inline-block mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                Válido para Despacho
-              </span>
-            </div>
+        {recetasPaciente.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center bg-slate-50/50">
+            <p className="text-xs font-bold text-slate-600">No posee prescripciones médicas activas en este momento.</p>
+            <p className="text-[11px] text-slate-400 mt-1">Los récipes emitidos por su médico de guardia aparecerán aquí foliados y listos para imprimir.</p>
           </div>
+        ) : (
+          <div className="space-y-3">
+            {recetasPaciente.map((rc, idx) => (
+              <div
+                key={rc.id || idx}
+                className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50/40 via-white to-indigo-50/30 p-5 space-y-4 hover:border-blue-300 transition-colors"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-blue-100">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-black text-blue-700 text-xs bg-blue-100/80 px-2.5 py-0.5 rounded-lg border border-blue-200">
+                        FOLIO #{rc.folio || idx + 1}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                        FORM. 001 MPPS
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-black text-slate-900 mt-2">
+                      {rc.resumen || rc.datos?.prescripcion_rp || 'Prescripción Médica'}
+                    </h3>
+                    {rc.datos?.indicaciones && (
+                      <p className="text-xs text-slate-600 font-medium mt-1 line-clamp-2">
+                        <strong>Indicaciones:</strong> {rc.datos.indicaciones}
+                      </p>
+                    )}
+                  </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-            <span>Fecha de emisión: 18 de Octubre de 2026</span>
-            <button className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-900 transition-colors cursor-pointer">
-              <span>Descargar Récipe Oficial Firmado (PDF)</span>
-              <span>→</span>
-            </button>
+                  <div className="sm:text-right text-xs">
+                    <p className="font-black text-slate-900">{rc.medico || rc.datos?.medico || 'Dr. Héctor Morales'}</p>
+                    <p className="text-[11px] text-slate-500 font-mono">{rc.datos?.mpps || 'MPPS 45.892 · DS-7'}</p>
+                    <span className="inline-block mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                      Válido para Despacho Farmacéutico
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
+                  <span>Fecha de emisión: <strong>{rc.datos?.fecha || rc.fecha || '19/10/2026'}</strong></span>
+                  <button
+                    onClick={() => {
+                      setRecipeActivo(rc)
+                      setModalRecipeAbierto(true)
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-black text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <span>Ver e Imprimir Récipe Oficial (FORM. 001)</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </section>
 
       {/* ── AUTORIZACIONES Y SOBERANÍA DEL PACIENTE ───────────── */}
@@ -416,6 +469,26 @@ export default function PacienteDashboard() {
         </div>
       )}
 
+    
+      {/* ── MODAL: RÉCIPE OFICIAL MPPS (VER / IMPRIMIR) ───────────── */}
+      {modalRecipeAbierto && createPortal(
+        <Formato001Modal
+          abierto={modalRecipeAbierto}
+          cerrar={() => {
+            setModalRecipeAbierto(false)
+            setRecipeActivo(null)
+          }}
+          paciente={{
+            nombre_completo: datosPaciente.nombre,
+            cedula: datosPaciente.cedula,
+            numero_historia: datosPaciente.historia,
+          }}
+          documento={recipeActivo}
+          modo="ver"
+        />,
+        document.body
+      )}
     </div>
+
   )
 }

@@ -58,7 +58,7 @@ const NAV_MEDICO = [
     titulo: 'Prescripciones',
     items: [
       {
-        label: 'Récipes Digitales & QR',
+        label: 'Récipes Médicos Oficiales',
         to: '/medico/recetas',
         badge: 'M5',
         badgeClass: 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
