@@ -51,6 +51,12 @@ const IconRefresh = () => (
   </svg>
 )
 
+const IconDownload = () => (
+  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+  </svg>
+)
+
 const SERVICIOS = [
   'TODOS',
   'Emergencia Adultos',
@@ -95,6 +101,62 @@ export default function RegistroMorbilidadPage() {
   const [guardandoAtencion, setGuardandoAtencion] = useState(false)
   const [errorModal, setErrorModal] = useState('')
   const [toast, setToast] = useState('')
+
+  // ── EXPORTAR CSV EPI-12 MPPS DS-7 ────────────────────────────
+  const exportarCSV = () => {
+    const atenciones = reporteDia?.atenciones || []
+    if (!atenciones.length) {
+      alert('No hay atenciones cargadas para exportar. Seleccione una fecha con registros.')
+      return
+    }
+
+    const fecha = fechaConsulta || new Date().toISOString().split('T')[0]
+    const fechaFormateada = fecha.split('-').reverse().join('/')
+
+    // Encabezado institucional EPI-12 MPPS
+    const cabecera = [
+      ['INFORME EPIDEMIOLÓGICO MENSUAL DE MORBILIDAD — PLANILLA EPI-12 MPPS'],
+      ['Instituto Municipal de Salud Ana Francisca Pérez de León'],
+      ['Ministerio del Poder Popular para la Salud · Distrito Sanitario N° 7'],
+      [`Fecha del Reporte: ${fechaFormateada}`, `Servicio: ${servicioFiltro}`],
+      [`Total Atenciones: ${reporteDia?.total_atenciones ?? 0}`, `Pacientes Únicos: ${reporteDia?.total_pacientes_unicos ?? 0}`],
+      [],
+      ['N°', 'Hora', 'C.I. Paciente', 'Nombre Completo', 'N° Historia', 'Servicio', 'Tipo Atención', 'Motivo', 'CIE-10', 'Diagnóstico', 'Médico Tratante', 'Destino Egreso'],
+    ]
+
+    const filas = atenciones.map((a, idx) => [
+      idx + 1,
+      String(a.hora_actividad || '').slice(0, 5),
+      a.cedula_paciente || '',
+      a.nombre_paciente || '',
+      a.numero_historia || '',
+      a.servicio || '',
+      a.tipo_atencion || '',
+      (a.motivo_atencion || '').replace(/,/g, ';'),
+      a.diagnostico_cie10 || '',
+      (a.diagnostico_desc || '').replace(/,/g, ';'),
+      a.medico_nombre || '',
+      a.destino_egreso || '',
+    ])
+
+    const todasLasFilas = [...cabecera, ...filas]
+    const csvContent = '\uFEFF' + todasLasFilas.map(row =>
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `EPI12_MPPS_DS7_${fecha}_${servicioFiltro.replace(/\s/g, '_')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    setToast(`¡Planilla EPI-12 exportada exitosamente! (${atenciones.length} registros)`)
+    setTimeout(() => setToast(''), 4000)
+  }
 
   // Cargar datos del día
   const cargarDatosDia = async () => {
@@ -190,6 +252,14 @@ export default function RegistroMorbilidadPage() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={exportarCSV}
+            title="Exportar Planilla EPI-12 MPPS DS-7 en formato CSV"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <IconDownload />
+            Exportar EPI-12 CSV
+          </button>
           <button
             onClick={() => setModalAbierto(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 active:scale-[0.98] transition-all cursor-pointer"

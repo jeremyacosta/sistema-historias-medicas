@@ -29,6 +29,7 @@ import GestionUsuariosPage   from './modules/admin/GestionUsuariosPage'
 import AuditoriaPage         from './modules/admin/AuditoriaPage'
 // ── Módulo Paciente ───────────────────────────────────────────
 import PacienteDashboard     from './modules/paciente/PacienteDashboard'
+import TeleconsultaPage      from './modules/paciente/TeleconsultaPage'
 
 // ── Página placeholder para módulos en desarrollo ────────────
 const Placeholder = ({ titulo }) => (
@@ -205,6 +206,7 @@ export default function App() {
               <Route path="/paciente/dashboard"  element={<PacienteDashboard />} />
               <Route path="/paciente/recetas"    element={<PacienteDashboard />} />
               <Route path="/paciente/historial"  element={<PacienteDashboard />} />
+              <Route path="/paciente/teleconsulta" element={<TeleconsultaPage />} />
               <Route path="/paciente/privacidad" element={<PacienteDashboard />} />
             </Route>
           </Route>
