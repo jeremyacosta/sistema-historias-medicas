@@ -74,11 +74,6 @@ export default function PacienteDashboard() {
     setTimeout(() => setNotificacion(''), 4000)
   }
 
-  const datosPaciente = {
-    historia: perfilClinico?.numero_historia || (esJeremy ? 'HPL-2024-00001' : 'HPL-2024-00002'),
-    cedula: perfilClinico?.cedula || (esJeremy ? '30.047.210' : '29.921.654'),
-    nombre: perfilClinico ? `${perfilClinico.nombre}
-
   // Cargar prescripciones oficiales foliadas del paciente (FORM. 001)
   useEffect(() => {
     try {
@@ -86,7 +81,7 @@ export default function PacienteDashboard() {
       const cedLimpia = String(usuario?.cedula || '').replace(/\D/g, '')
       const pac = list.find((p) => {
         const pCed = String(p.cedula || '').replace(/\D/g, '')
-        return (cedLimpia && pCed === cedLimpia) || (p.numero_historia === datosPaciente.historia)
+        return (cedLimpia && pCed === cedLimpia) || (p.numero_historia === (perfilClinico?.numero_historia || (esJeremy ? 'HPL-2024-00001' : 'HPL-2024-00002')))
       }) || list[0]
 
       if (pac && Array.isArray(pac.documentos)) {
@@ -97,7 +92,11 @@ export default function PacienteDashboard() {
       console.warn('Error al cargar recetas del paciente:', e)
     }
   }, [usuario?.cedula, perfilClinico])
- ${perfilClinico.apellido}` : (esJeremy ? 'Jeremy Acosta' : 'Eli Araujo'),
+
+  const datosPaciente = {
+    historia: perfilClinico?.numero_historia || (esJeremy ? 'HPL-2024-00001' : 'HPL-2024-00002'),
+    cedula: perfilClinico?.cedula || (esJeremy ? '30.047.210' : '29.921.654'),
+    nombre: perfilClinico ? `${perfilClinico.nombre} ${perfilClinico.apellido}` : (esJeremy ? 'Jeremy Acosta' : 'Eli Araujo'),
     fechaNacimiento: perfilClinico?.fecha_nacimiento || (esJeremy ? '15 de Mayo de 2000 (24 años)' : '22 de Marzo de 2001 (23 años)'),
     tipoSangre: perfilClinico?.tipo_sangre || (esJeremy ? 'O+' : 'A+'),
     alergias: perfilClinico?.alergias_conocidas || (esJeremy ? 'Alergia severa a Penicilina (PNC)' : 'Ninguna conocida'),
