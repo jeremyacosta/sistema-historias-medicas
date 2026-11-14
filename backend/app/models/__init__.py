@@ -10,6 +10,7 @@ from app.models.usuario  import Rol, Permiso, RolPermiso, Usuario       # noqa: 
 from app.models.paciente import Paciente, PoliticaPrivacidadPaciente     # noqa: F401
 from app.models.historia import HistoriaEmergencia051                    # noqa: F401
 from app.models.morbilidad import ActividadMorbilidad                    # noqa: F401
+from app.models.receta import RecetaMedica001                            # noqa: F401
 from app.models.security import (                                         # noqa: F401
     SesionActiva,
     IntentoLogin,

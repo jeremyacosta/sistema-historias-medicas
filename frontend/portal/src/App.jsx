@@ -19,6 +19,7 @@ import MedicoDashboard       from './modules/medico/MedicoDashboard'
 import HistoriasPage         from './modules/medico/HistoriasPage'
 import NotasEvolucionPage    from './modules/medico/NotasEvolucionPage'
 import RecetasPage           from './modules/medico/RecetasPage'
+import TeleasistenciaMedicoPage from './modules/medico/TeleasistenciaMedicoPage'
 // ── Módulo Admisión ───────────────────────────────────────────
 import DashboardPage         from './modules/admision/DashboardPage'
 import AdmisionPacientesPage from './modules/admision/AdmisionPacientesPage'
@@ -160,6 +161,7 @@ export default function App() {
                 <Route index element={<RecetasPage />} />
               </Route>
               <Route path="/medico/notas" element={<NotasEvolucionPage />} />
+              <Route path="/medico/teleconsulta" element={<TeleasistenciaMedicoPage />} />
             </Route>
           </Route>
 
