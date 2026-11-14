@@ -1,6 +1,7 @@
 // ============================================================
 //  src/components/teleconsulta/VideoLlamadaClinicaModal.jsx
 //  M6 — Videollamada Clínica WebRTC con Robot Copiloto IA en Vivo
+//       Reconocimiento de Voz en Tiempo Real (Web Speech API)
 //  Cosmos Clinical Command · Instituto Municipal de Salud
 //  © 2026 · Jeremy Acosta & Eli Araujo · USM · MPPS DS-7
 // ============================================================
@@ -57,6 +58,8 @@ export default function VideoLlamadaClinicaModal({
   alCerrar
 }) {
   const videoLocalRef = useRef(null)
+  const recognitionRef = useRef(null)
+
   const [stream, setStream] = useState(null)
   const [micActivo, setMicActivo] = useState(true)
   const [camaraActiva, setCamaraActiva] = useState(true)
@@ -64,20 +67,27 @@ export default function VideoLlamadaClinicaModal({
   const [estadoLlamada, setEstadoLlamada] = useState('conectando') // conectando | activa | finalizada
   const [errorMsg, setErrorMsg] = useState(null)
 
-  // ── Estados del Robot IA Asistente ──────────────────────────
+  // ── Estados del Robot IA Asistente y Reconocimiento de Voz ──
   const [robotActivo, setRobotActivo] = useState(true)
-  const [panelIABot, setPanelIABot] = useState(false)
+  const [panelIABot, setPanelIABot] = useState(true) // Visible por defecto para que el usuario lo vea
+  const [escuchandoVoz, setEscuchandoVoz] = useState(false)
+  const [vozEnVivoTexto, setVozEnVivoTexto] = useState('')
   const [transcripcion, setTranscripcion] = useState([
-    { hablante: 'paciente', nombre: 'Jeremy Acosta', texto: 'Buenas tardes Dr., la presión se ha mantenido en 135/85 y la cefalea ha disminuido notablemente.', hora: '00:05' },
-    { hablante: 'medico', nombre: 'Dr. Héctor Morales', texto: 'Buenas tardes Jeremy. Excelente evolución. No ha presentado mareos ni visión borrosa, ¿correcto?', hora: '00:12' },
-    { hablante: 'paciente', nombre: 'Jeremy Acosta', texto: 'Correcto doctor, nada de mareos. Solo quería validar si continúo con el tratamiento.', hora: '00:18' },
-    { hablante: 'medico', nombre: 'Dr. Héctor Morales', texto: 'Mantendremos el Losartán 50mg cada 24 horas y control de cifras tensionales en dos semanas.', hora: '00:26' },
+    { hablante: 'sistema', nombre: 'MediBot IA', texto: 'Robot asistente conectado y escuchando micrófono en vivo...', hora: '00:01' }
   ])
   const [resumenSOAPGenerado, setResumenSOAPGenerado] = useState(null)
   const [generandoResumen, setGenerandoResumen] = useState(false)
   const [copiadoResumen, setCopiadoResumen] = useState(false)
 
-  // ── Activar cámara y micrófono ────────────────────────────
+  const miNombre = rol === 'medico'
+    ? (medico?.nombre || 'Dr. Médico')
+    : (paciente?.paciente_nombre || 'Jeremy Acosta')
+
+  const nombre_remoto = rol === 'medico'
+    ? (paciente?.paciente_nombre || 'Jeremy Acosta')
+    : (medico?.nombre || 'Dr. Héctor Morales')
+
+  // ── 1. Activar cámara y micrófono local ───────────────────
   useEffect(() => {
     let mediaStream = null
 
@@ -88,7 +98,7 @@ export default function VideoLlamadaClinicaModal({
         if (videoLocalRef.current) {
           videoLocalRef.current.srcObject = mediaStream
         }
-        setTimeout(() => setEstadoLlamada('activa'), 1500)
+        setTimeout(() => setEstadoLlamada('activa'), 1200)
       } catch {
         setErrorMsg('Permiso de cámara/micrófono denegado. Se activará en modo audio-clínico.')
         setEstadoLlamada('activa')
@@ -102,7 +112,7 @@ export default function VideoLlamadaClinicaModal({
     }
   }, [])
 
-  // ── Cronómetro de la sesión ───────────────────────────────
+  // ── 2. Cronómetro de la sesión ────────────────────────────
   useEffect(() => {
     if (estadoLlamada !== 'activa') return
     const timer = setInterval(() => setDuracion(d => d + 1), 1000)
@@ -113,6 +123,139 @@ export default function VideoLlamadaClinicaModal({
     const m = Math.floor(s / 60).toString().padStart(2, '0')
     const sec = (s % 60).toString().padStart(2, '0')
     return `${m}:${sec}`
+  }
+
+  // ── 3. Motor de Reconocimiento de Voz Real (Web Speech API) ─
+  useEffect(() => {
+    if (estadoLlamada !== 'activa' || !micActivo || !robotActivo) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop() } catch {}
+      }
+      setEscuchandoVoz(false)
+      return
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+    if (!SpeechRecognition) {
+      console.warn('SpeechRecognition no está soportado en este navegador.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognition.lang = 'es-VE' // Español de Venezuela (o es-ES)
+
+    recognition.onstart = () => {
+      setEscuchandoVoz(true)
+    }
+
+    recognition.onresult = (event) => {
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          const textoFinal = transcript.trim()
+          if (textoFinal) {
+            setTranscripcion(prev => [
+              ...prev,
+              {
+                hablante: rol,
+                nombre: miNombre,
+                texto: textoFinal,
+                hora: formatDuracion(duracion)
+              }
+            ])
+            setVozEnVivoTexto(textoFinal)
+          }
+        } else {
+          interim += transcript
+          setVozEnVivoTexto(interim)
+        }
+      }
+    }
+
+    recognition.onerror = (event) => {
+      console.warn('SpeechRecognition error:', event.error)
+      if (event.error !== 'no-speech') {
+        setEscuchandoVoz(false)
+      }
+    }
+
+    recognition.onend = () => {
+      // Re-iniciar si la llamada sigue activa y el micrófono está encendido
+      if (estadoLlamada === 'activa' && micActivo && robotActivo) {
+        try { recognition.start() } catch {}
+      } else {
+        setEscuchandoVoz(false)
+      }
+    }
+
+    try {
+      recognition.start()
+      recognitionRef.current = recognition
+    } catch (e) {
+      console.warn('Error al iniciar SpeechRecognition:', e)
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop() } catch {}
+      }
+    }
+  }, [estadoLlamada, micActivo, robotActivo])
+
+  // ── 4. Generador Inteligente de Resumen SOAP basado en la Voz Real ──
+  const generarResumenRobotIA = () => {
+    setGenerandoResumen(true)
+
+    setTimeout(() => {
+      // Unir todo lo hablado realmente durante la llamada
+      const oracionesHabladas = transcripcion
+        .filter(t => t.hablante !== 'sistema')
+        .map(t => t.texto)
+
+      const textoCompleto = oracionesHabladas.join(' ').toLowerCase()
+
+      // Extracción de síntomas clave a partir de lo que habló la persona
+      const sintomas = []
+      if (/presi[oó]n|tensi[oó]n|135|120|140/.test(textoCompleto)) sintomas.push('Valores tensionales referidos')
+      if (/dolor|cefalea|cabeza/.test(textoCompleto)) sintomas.push('Cefalea / dolor referido')
+      if (/fiebre|calentura|temperatura/.test(textoCompleto)) sintomas.push('Síndrome febril evaluado')
+      if (/tos|gripe|pecho|respirar/.test(textoCompleto)) sintomas.push('Síntomas respiratorios / tos')
+      if (/mareo|v[eé]rtigo/.test(textoCompleto)) sintomas.push('Mareos / inestabilidad')
+      if (/mejo|bien|alivi|estable/.test(textoCompleto)) sintomas.push('Evolución clínica satisfactoria')
+
+      // Extracción de medicamentos hablados
+      const farmacos = []
+      if (/losart[aá]n/.test(textoCompleto)) farmacos.push('Losartán 50mg')
+      if (/paracetamol|acetaminof[eé]n/.test(textoCompleto)) farmacos.push('Paracetamol')
+      if (/ibuprofeno/.test(textoCompleto)) farmacos.push('Ibuprofeno')
+      if (/suero|hidrataci[oó]n/.test(textoCompleto)) farmacos.push('Hidratación oral')
+
+      const subjetivoTexto = oracionesHabladas.length > 0
+        ? `Durante la sesión de teleconsulta el paciente/facultativo refirió: "${oracionesHabladas.slice(-2).join(' ')}". ${sintomas.length > 0 ? `Hallazgos identificados: ${sintomas.join(', ')}.` : ''}`
+        : 'Paciente evaluado por teleasistencia en tiempo real. Comunicación verbal fluida y sin signos evidentes de compromiso agudo.'
+
+      const planTexto = farmacos.length > 0
+        ? `Continuar tratamiento acordado verbalmente con: ${farmacos.join(', ')}. Control de signos en su centro ambulatorio.`
+        : 'Mantener indicaciones clínicas preventivas, reposo e hidratación. Control en caso de persistencia de síntomas.'
+
+      setResumenSOAPGenerado({
+        subjetivo: subjetivoTexto,
+        objetivo: 'Constantes evaluadas remotamente. Intercambio verbal coherente, orientado en tiempo, espacio y persona. Sin dificultad respiratoria aparente.',
+        analisis: sintomas.length > 0
+          ? `Evaluación clínica basada en el diálogo médico: ${sintomas.join(', ')}. Paciente con evolución estable.`
+          : 'Consulta de seguimiento clínico general sin criterios de urgencia inmediata.',
+        plan: planTexto,
+        timestamp: new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }),
+        auditHash: 'SHA256-MPPS-VOZ-' + Math.random().toString(36).substring(2, 9).toUpperCase(),
+        totalLineasHabladas: oracionesHabladas.length
+      })
+
+      setGenerandoResumen(false)
+    }, 1200)
   }
 
   const toggleMic = () => {
@@ -130,31 +273,17 @@ export default function VideoLlamadaClinicaModal({
     if (!robotActivo) setPanelIABot(true)
   }
 
-  const generarResumenRobotIA = () => {
-    setGenerandoResumen(true)
-    setTimeout(() => {
-      setResumenSOAPGenerado({
-        subjetivo: 'Paciente acude a control refiriendo estabilidad clínica. T.A. referida 135/85 mmHg sin mareos, cefalea en remisión.',
-        objetivo: 'Paciente consciente, orientado, buena hidratación. Signos vitales estables reportados.',
-        analisis: 'Hipertensión arterial primaria bajo respuesta terapéutica adecuada. Sin signos de alarma cardiovasculares.',
-        plan: 'Continuar Losartán 50mg V.O. diario. Registro de presión arterial por 7 días. Control sucesivo en 15 días.',
-        timestamp: new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }),
-        auditHash: 'SHA256-TELEMED-' + Math.random().toString(36).substring(2, 10).toUpperCase()
-      })
-      setGenerandoResumen(false)
-    }, 1200)
-  }
-
   const finalizar = () => {
     if (stream) stream.getTracks().forEach(t => t.stop())
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop() } catch {}
+    }
     setEstadoLlamada('finalizada')
   }
 
   const cerrarDefinitivo = () => {
     alCerrar({ duracion: formatDuracion(duracion), resumen: resumenSOAPGenerado })
   }
-
-  const nombre_remoto = rol === 'medico' ? (paciente?.paciente_nombre || 'Jeremy Acosta') : (medico?.nombre || 'Dr. Héctor Morales')
 
   return (
     <div className="fixed inset-0 z-[9000] flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4 animate-fadeIn">
@@ -181,11 +310,15 @@ export default function VideoLlamadaClinicaModal({
             {robotActivo && (
               <button
                 onClick={() => setPanelIABot(v => !v)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/20 border border-violet-500/40 text-violet-300 text-xs font-black hover:bg-violet-500/30 transition-all cursor-pointer shadow-sm animate-pulse"
-                title="Ver transcripción y resumen de la IA"
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black transition-all cursor-pointer shadow-sm ${
+                  escuchandoVoz
+                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 animate-pulse'
+                    : 'bg-violet-500/20 border border-violet-500/40 text-violet-300'
+                }`}
+                title="MediBot escuchando micrófono en vivo"
               >
                 <IconRobot />
-                <span>MediBot IA Activo</span>
+                <span>{escuchandoVoz ? '🤖 MediBot Escuchando tu Voz' : '🤖 MediBot IA'}</span>
               </button>
             )}
 
@@ -227,7 +360,7 @@ export default function VideoLlamadaClinicaModal({
                 {[4, 8, 5, 12, 7, 10, 4, 9, 6].map((h, i) => (
                   <div
                     key={i}
-                    className="w-1 bg-emerald-400 rounded-full animate-pulse"
+                    className={`w-1 rounded-full ${escuchandoVoz ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`}
                     style={{ height: `${h * 2}px`, animationDelay: `${i * 0.12}s` }}
                   />
                 ))}
@@ -255,15 +388,23 @@ export default function VideoLlamadaClinicaModal({
               </div>
             </div>
 
-            {/* Subtítulos IA Flotantes en la parte inferior del video */}
+            {/* Subtítulos IA Flotantes de lo que HABLAS en tu micrófono */}
             {robotActivo && (
-              <div className="absolute bottom-4 left-4 right-40 sm:right-56 z-10 bg-black/70 backdrop-blur-md border border-violet-500/30 rounded-xl p-2.5 text-xs text-white shadow-lg animate-fadeIn">
-                <div className="flex items-center gap-1.5 text-violet-300 font-black text-[10px] uppercase mb-1">
-                  <IconRobot />
-                  <span>Transcripción en tiempo real · MediBot IA</span>
+              <div className="absolute bottom-4 left-4 right-40 sm:right-56 z-10 bg-black/75 backdrop-blur-md border border-violet-500/40 rounded-xl p-2.5 text-xs text-white shadow-xl animate-fadeIn">
+                <div className="flex items-center justify-between text-violet-300 font-black text-[10px] uppercase mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <IconRobot />
+                    <span>Transcripción por Voz en Vivo</span>
+                  </div>
+                  {escuchandoVoz && (
+                    <span className="flex items-center gap-1 text-[9px] text-emerald-400 font-mono">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      MICRÓFONO ACTIVO
+                    </span>
+                  )}
                 </div>
-                <p className="text-slate-200 line-clamp-2 italic">
-                  "{transcripcion[transcripcion.length - 1]?.texto}"
+                <p className="text-slate-100 italic font-medium leading-relaxed">
+                  {vozEnVivoTexto ? `"${vozEnVivoTexto}"` : '"Habla por tu micrófono... MediBot transcribirá tus palabras en vivo"'}
                 </p>
               </div>
             )}
@@ -281,7 +422,7 @@ export default function VideoLlamadaClinicaModal({
                     </div>
                     <div>
                       <h4 className="text-xs font-black text-white">MediBot Asistente IA</h4>
-                      <p className="text-[10px] text-violet-400">Resumen y Transcripción Clínica</p>
+                      <p className="text-[10px] text-violet-400">Escuchando micrófono y resumiendo</p>
                     </div>
                   </div>
                   <button
@@ -294,14 +435,22 @@ export default function VideoLlamadaClinicaModal({
 
                 {/* Transcripción de la conversación */}
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Diálogo Reconocido en Vivo:
-                  </span>
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Transcripción en Vivo:
+                    </span>
+                    <span className="text-[9px] text-emerald-400 font-mono">
+                      {transcripcion.filter(t => t.hablante !== 'sistema').length} intervenciones
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 max-h-44 overflow-y-auto pr-1 text-xs">
                     {transcripcion.map((t, i) => (
                       <div key={i} className="p-2 rounded-lg bg-slate-800/80 border border-slate-700/60">
                         <div className="flex items-center justify-between text-[10px] text-slate-400 mb-0.5">
-                          <span className="font-bold text-violet-300">{t.nombre}</span>
+                          <span className={`font-bold ${t.hablante === 'sistema' ? 'text-amber-300' : 'text-violet-300'}`}>
+                            {t.nombre}
+                          </span>
                           <span className="font-mono">{t.hora}</span>
                         </div>
                         <p className="text-slate-200 text-[11px] leading-relaxed">{t.texto}</p>
@@ -314,7 +463,7 @@ export default function VideoLlamadaClinicaModal({
                 <button
                   onClick={generarResumenRobotIA}
                   disabled={generandoResumen}
-                  className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-violet-900/30"
+                  className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-violet-900/30 active:scale-[0.98]"
                 >
                   {generandoResumen ? (
                     <>
@@ -322,12 +471,12 @@ export default function VideoLlamadaClinicaModal({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      <span>Sintetizando consulta...</span>
+                      <span>Procesando lo que hablaste...</span>
                     </>
                   ) : (
                     <>
                       <IconSparkles />
-                      <span>Generar Resumen Clínico con IA</span>
+                      <span>Generar Resumen con lo Hablado</span>
                     </>
                   )}
                 </button>
@@ -338,7 +487,7 @@ export default function VideoLlamadaClinicaModal({
                     <div className="flex items-center justify-between">
                       <span className="font-black text-violet-200 text-[11px] uppercase tracking-wider flex items-center gap-1">
                         <IconSparkles />
-                        Resumen Médico SOAP
+                        Resumen SOAP Personalizado
                       </span>
                       <span className="text-[9px] font-mono text-violet-400">{resumenSOAPGenerado.timestamp}</span>
                     </div>
@@ -351,7 +500,7 @@ export default function VideoLlamadaClinicaModal({
                     </div>
 
                     <div className="pt-2 border-t border-violet-800/60 flex items-center justify-between text-[10px]">
-                      <span className="text-emerald-400 font-mono font-bold">✓ Listo para archivar</span>
+                      <span className="text-emerald-400 font-mono font-bold">✓ Creado de tu voz</span>
                       <button
                         onClick={() => {
                           navigator.clipboard?.writeText(
@@ -442,7 +591,9 @@ export default function VideoLlamadaClinicaModal({
                   <span className="font-mono text-emerald-400">✓ Auditado MPPS DS-7</span>
                 </div>
                 <p className="text-slate-300 text-[11px] leading-relaxed">
-                  "Paciente estable con control tensional satisfactorio (135/85 mmHg). Se mantiene pauta farmacológica ambulatoria y seguimiento médico."
+                  {resumenSOAPGenerado
+                    ? resumenSOAPGenerado.subjetivo
+                    : '"Paciente y facultativo mantuvieron sesión de teleconsulta médica. Registro de voz procesado bajo estándares de seguridad MPPS."'}
                 </p>
               </div>
 
